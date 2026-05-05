@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - AquAti</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body class="dashboard-layout">
+  <aside class="sidebar">
+    <h2>AquAti</h2>
+
+    <p style="opacity: 0.5; font-size: 0.75em; margin: 30px 0 15px; text-transform: uppercase; letter-spacing: 1px;">
+      Panel de Control</p>
+
+    <nav>
+      <div class="sidebar-nav-item active">
+        <span>📊</span>
+        <span>Resumen</span>
+      </div>
+      <div class="sidebar-nav-item">
+        <span>📈</span>
+        <span>Historial</span>
+      </div>
+      <div class="sidebar-nav-item">
+        <span>📡</span>
+        <span>Dispositivos</span>
+      </div>
+      <div class="sidebar-nav-item">
+        <span>⚙️</span>
+        <span>Configuración</span>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="page-header">
+      <div>
+        <h1 id="userGreeting"></h1>
+        <p style="color: #94a3b8; margin-top: 5px;">Bienvenido de nuevo a tu panel</p>
+      </div>
+      <div class="user-info">
+        <button type="button" class="btn-cerrarS">Cerrar sesión</button>
+      </div>
+    </header>
+
+    <div class="cards-grid">
+      <div class="stat-card">
+        <div class="stat-card-content">
+          <div>
+            <h4>Litros totales</h4>
+            <div id="litrosTotalesElem" class="value">0 L</div>
+          </div>
+          <div class="stat-card-icon">💧</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-content">
+          <div>
+            <h4>Litros hoy</h4>
+            <div id="litrosHoyElem" class="value">0 L</div>
+          </div>
+          <div class="stat-card-icon">📅</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-card-content">
+          <div>
+            <h4>Calidad del Agua</h4>
+            <div id="calidadAguaElem" class="value">--</div>
+          </div>
+          <div class="stat-card-icon">✅</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-container">
+      <h4>📈 Consumo Semanal</h4>
+      <canvas id="dashboardChart"></canvas>
+    </div>
+
+    <!-- Sección de Alertas -->
+    <div class="alerts-section">
+      <h4>⚠️ Alertas Recientes</h4>
+
+      <div class="alerts-table-container">
+        <table id="alertsTable">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Tipo de alerta</th>
+              <th>Descripción</th>
+            </tr>
+          </thead>
+          <tbody id="alertsTableBody">
+            <!-- Las filas se insertarán dinámicamente aquí -->
+          </tbody>
+        </table>
+        <div id="noAlertsMessage">
+          No hay alertas recientes
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="js/dashboard.js"></script>
+</body>
+
+</html>

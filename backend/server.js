@@ -1,0 +1,30 @@
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+// Rutas
+const registerRoute = require('./routes/register');
+app.use('/api/register', registerRoute);
+
+const loginRoute = require('./routes/login');
+app.use('/api/login', loginRoute);
+
+const datosRoute = require('./routes/datos');
+app.use('/api/datos', datosRoute);
+
+const historicoRoute = require('./routes/historico');
+app.use('/api/historico', historicoRoute);
+
+require('./simulador');
+
+// Puerto (IMPORTANTE para Railway)
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Servidor corriendo en puerto ${PORT}`);
+});
