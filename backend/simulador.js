@@ -105,4 +105,5 @@ async function insertarLectura() {
 }
 
 insertarLectura();
-setInterval(insertarLectura, 60 * 60 * 1000);
+//setInterval(insertarLectura, 60 * 60 * 1000);
+setInterval(insertarLectura, 60 * 1000); // Cada 1 minuto para pruebas
