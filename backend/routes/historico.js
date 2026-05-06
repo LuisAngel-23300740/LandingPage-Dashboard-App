@@ -75,7 +75,7 @@ router.get('/', async (req, res) => {
     }
 
     // Si no hay ningún dato en los últimos 7 días, devolver CEROS en todos los dias
-    if (resultado.length === 0) {
+    if (!resultado || resultado.length === 0) {
       const datosVacios = fechasRequeridas.map(fecha => ({
         fecha,
         litros: 0,
@@ -90,8 +90,9 @@ router.get('/', async (req, res) => {
       const fecha = getMexicoDateStr(new Date(row.timestamp));
       const actual = mapDatos.get(fecha) || { sumaLitros: 0, sumaCalidad: 0, cantidad: 0 };
       
-      actual.sumaLitros += row.litros_dia || row.litros || 0;
-      actual.sumaCalidad += row.calidad_agua;
+      // Intentar con todos los posibles nombres de columna para litros
+      actual.sumaLitros += row.litros_dia || row.litros || row.litros_consumidos || row.cantidad_litros || 0;
+      actual.sumaCalidad += row.calidad_agua || row.calidad || 0;
       actual.cantidad += 1;
       
       mapDatos.set(fecha, actual);

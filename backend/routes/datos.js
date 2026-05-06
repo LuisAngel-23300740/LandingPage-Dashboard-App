@@ -58,6 +58,9 @@ router.get('/', async (req, res) => {
       // ✅ NO THROW, simplemente seguimos con datos por defecto
       lecturaResult = [];
     }
+    
+    // ✅ Seguridad: asegurar que lecturaResult nunca sea null
+    lecturaResult = lecturaResult || [];
 
     // Obtener últimas alertas del usuario desde Supabase
     const { data: alertasResult, error: alertasError } = await supabase
@@ -67,24 +70,23 @@ router.get('/', async (req, res) => {
       .order('timestamp', { ascending: false })
       .limit(5);
 
-    if (alertasError) {
-      console.error('Error obteniendo alertas:', alertasError);
-      throw alertasError;
+    // ✅ NUNCA lanzar error por alertas, simplemente devolver array vacio
+    let alertas = [];
+    if (!alertasError && alertasResult && alertasResult.length > 0) {
+      alertas = alertasResult.map(a => ({
+        fecha: a.timestamp,
+        tipo: a.tipo_alerta,
+        descripcion:
+          a.tipo_alerta === 'Filtro saturado' ? 'El filtro requiere mantenimiento urgente.' :
+          a.tipo_alerta === 'Calidad baja' ? 'La calidad del agua está por debajo del umbral recomendado.' :
+          'Revisión recomendada del sistema.'
+      }));
     }
-
-    const alertas = alertasResult.map(a => ({
-      fecha: a.timestamp,
-      tipo: a.tipo_alerta,
-      descripcion:
-        a.tipo_alerta === 'Filtro saturado' ? 'El filtro requiere mantenimiento urgente.' :
-        a.tipo_alerta === 'Calidad baja' ? 'La calidad del agua está por debajo del umbral recomendado.' :
-        'Revisión recomendada del sistema.'
-    }));
 
     let datos;
     if (lecturaResult && lecturaResult.length > 0) {
       const lectura = lecturaResult[0];
-      const litrosDia = lectura.litros_dia || lectura.litros || 0;
+      const litrosDia = lectura.litros_dia || lectura.litros || lectura.litros_consumidos || lectura.cantidad_litros || 0;
       datos = {
         litros_totales: 1250,
         litros_hoy: Math.round(parseFloat(litrosDia)),
