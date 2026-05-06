@@ -112,9 +112,33 @@ async function cargarDatosDashboard() {
         }
 
         // Mostrar alertas si existen
+        const alertsTableBody = document.getElementById('alertsTableBody');
+        const noAlertsMessage = document.getElementById('noAlertsMessage');
+        
         if (datos.alertas && datos.alertas.length > 0) {
             console.log('Alertas recibidas:', datos.alertas);
-            // Aquí se podrían mostrar las alertas en la interfaz gráfica
+            
+            // Limpiar tabla
+            alertsTableBody.innerHTML = '';
+            
+            // Insertar cada alerta en la tabla
+            datos.alertas.forEach(alerta => {
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td>${new Date(alerta.fecha).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                    <td><span style="color: ${alerta.tipo === 'Filtro saturado' ? '#ef4444' : alerta.tipo === 'Calidad baja' ? '#f59e0b' : '#3b82f6'};">${alerta.tipo}</span></td>
+                    <td>${alerta.descripcion}</td>
+                `;
+                alertsTableBody.appendChild(fila);
+            });
+            
+            // Mostrar tabla y ocultar mensaje sin alertas
+            document.getElementById('alertsTable').style.display = 'table';
+            noAlertsMessage.style.display = 'none';
+        } else {
+            // Ocultar tabla y mostrar mensaje sin alertas
+            document.getElementById('alertsTable').style.display = 'none';
+            noAlertsMessage.style.display = 'block';
         }
 
     } catch (error) {
