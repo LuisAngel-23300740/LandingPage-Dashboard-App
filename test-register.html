@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Registro - AquAti</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .test-section { background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .result { padding: 10px; border-radius: 4px; margin: 10px 0; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        input { padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test de Registro - AquAti</h1>
+
+    <div class="test-section">
+        <h3>Test 1: Verificar Conexión con API</h3>
+        <button onclick="testHealth()">Probar Health Check</button>
+        <div id="healthResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test 2: Verificar Variables de Entorno</h3>
+        <button onclick="testDiagnostics()">Probar Diagnostics</button>
+        <div id="diagResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test 3: Probar Registro</h3>
+        <input type="text" id="testName" placeholder="Nombre" value="Test User">
+        <input type="email" id="testEmail" placeholder="Email" value="test999@example.com">
+        <input type="password" id="testPassword" placeholder="Contraseña" value="123456">
+        <br><br>
+        <button onclick="testRegister()">Probar Registro</button>
+        <div id="registerResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test 4: Probar con Email Existente</h3>
+        <button onclick="testDuplicateEmail()">Probar Email Duplicado</button>
+        <div id="duplicateResult"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://landingpage-dashboard-app.onrender.com/api';
+
+        function showResult(elementId, content, isSuccess = true) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<pre class="result ${isSuccess ? 'success' : 'error'}">${content}</pre>`;
+        }
+
+        async function testHealth() {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                showResult('healthResult', JSON.stringify(data, null, 2), response.ok);
+            } catch (error) {
+                showResult('healthResult', `Error: ${error.message}`, false);
+            }
+        }
+
+        async function testDiagnostics() {
+            try {
+                const response = await fetch(`${API_URL}/diagnostics`);
+                const data = await response.json();
+                showResult('diagResult', JSON.stringify(data, null, 2), response.ok);
+            } catch (error) {
+                showResult('diagResult', `Error: ${error.message}`, false);
+            }
+        }
+
+        async function testRegister() {
+            const name = document.getElementById('testName').value;
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+
+            try {
+                const response = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await response.json();
+                showResult('registerResult', JSON.stringify(data, null, 2), response.ok);
+            } catch (error) {
+                showResult('registerResult', `Error: ${error.message}`, false);
+            }
+        }
+
+        async function testDuplicateEmail() {
+            try {
+                const response = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: 'Test Duplicate',
+                        email: 'test123@example.com', // Email que ya registré antes
+                        password: '123456'
+                    })
+                });
+                const data = await response.json();
+                showResult('duplicateResult', JSON.stringify(data, null, 2), response.ok);
+            } catch (error) {
+                showResult('duplicateResult', `Error: ${error.message}`, false);
+            }
+        }
+    </script>
+</body>
+</html>
