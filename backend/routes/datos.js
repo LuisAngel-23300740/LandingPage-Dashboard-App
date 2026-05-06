@@ -115,7 +115,7 @@ router.get('/', async (req, res) => {
         litros_hoy: 0,
         calidad_agua: 0,
         estado_filtro: 'desconocido',
-        alertas: [],
+        alertas: alertas,
         mensaje: "No hay datos registrados aun"
       };
     }
