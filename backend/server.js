@@ -20,6 +20,9 @@ app.use('/api/datos', datosRoute);
 const historicoRoute = require('./routes/historico');
 app.use('/api/historico', historicoRoute);
 
+const dbSchemaRoute = require('./routes/db-schema');
+app.use('/api/db-schema', dbSchemaRoute);
+
 // Endpoint de diagnóstico para verificar configuración
 app.get('/api/diagnostics', (req, res) => {
   const diagnostics = {
