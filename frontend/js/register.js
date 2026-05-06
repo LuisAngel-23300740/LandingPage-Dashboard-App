@@ -1,4 +1,4 @@
-const API_URL = 'https://landingpage-dashboard-app-production.up.railway.app/api';
+const API_URL = 'https://landingpage-dashboard-app.onrender.com/api';
 
 document.getElementById('registerForm').addEventListener('submit', async function (e) {
   e.preventDefault();

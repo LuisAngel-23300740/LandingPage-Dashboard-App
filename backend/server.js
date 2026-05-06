@@ -22,7 +22,7 @@ app.use('/api/historico', historicoRoute);
 
 require('./simulador');
 
-// Puerto (IMPORTANTE para Railway)
+// Puerto (IMPORTANTE para Render)
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
