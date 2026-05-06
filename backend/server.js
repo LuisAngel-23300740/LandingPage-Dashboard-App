@@ -43,6 +43,46 @@ app.get('/api/diagnostics', (req, res) => {
   res.json(diagnostics);
 });
 
+// Endpoint de health check con prueba de Supabase
+app.get('/api/health', async (req, res) => {
+  try {
+    const supabase = require('./config/supabase');
+
+    // Probar conexión con Supabase
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('count', { count: 'exact', head: true });
+
+    if (error) {
+      console.error('Health check - Supabase error:', error);
+      return res.status(500).json({
+        status: 'error',
+        message: 'Error conectando con Supabase',
+        error: error.message,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    res.json({
+      status: 'healthy',
+      message: 'Servidor y base de datos funcionando correctamente',
+      database: {
+        connected: true,
+        userCount: data || 0
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Health check error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Error interno del servidor',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 require('./simulador');
 
 // Puerto (IMPORTANTE para Render)
