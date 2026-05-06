@@ -54,14 +54,23 @@ async function cargarDatosDashboard() {
         console.log('[DEBUG] Respuesta ok:', respuesta.ok);
 
         if (!respuesta.ok) {
-            // Token inválido o error de autenticación
             const errorData = await respuesta.json().catch(() => ({}));
             console.error('[ERROR] Error en respuesta:', errorData);
-            console.log('[ERROR] Token inválido o error de autenticación, redirigiendo a login');
-            localStorage.removeItem('token');
-            localStorage.removeItem('userName');
-            localStorage.removeItem('userEmail');
-            window.location.href = 'login.html';
+            
+            // ✅ SOLO redirigir si es ERROR DE AUTENTICACIÓN REAL (401 o 403)
+            if (respuesta.status === 401 || respuesta.status === 403) {
+                console.log('[ERROR] Token inválido o expirado, redirigiendo a login');
+                localStorage.removeItem('token');
+                localStorage.removeItem('userName');
+                localStorage.removeItem('userEmail');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            // ✅ Para otros errores (500, error de servidor, conexión) NO BORRAR SESION
+            // Solo mostrar error y continuar con datos por defecto
+            console.log('[WARN] Error del servidor, pero la sesión sigue siendo válida');
+            alert('Hubo un error al cargar los datos. Intenta actualizar la página.');
             return;
         }
 
@@ -187,6 +196,15 @@ async function cargarDatosHistoricos() {
                 'Content-Type': 'application/json'
             }
         });
+
+        // ✅ NO borrar sesion aunque falle este endpoint
+        if (respuesta.status === 401 || respuesta.status === 403) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userName');
+            localStorage.removeItem('userEmail');
+            window.location.href = 'login.html';
+            return;
+        }
 
         if (respuesta.ok && dashboardChart) {
             const datosHistoricos = await respuesta.json();
