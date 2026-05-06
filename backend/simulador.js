@@ -52,5 +52,5 @@ async function insertarLectura() {
   }
 }
 
-//insertarLectura();
-//setInterval(insertarLectura, 60 * 60 * 1000);
+insertarLectura();
+setInterval(insertarLectura, 60 * 60 * 1000);
