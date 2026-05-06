@@ -16,18 +16,21 @@ async function insertarLectura() {
       const calidad = Math.floor(Math.random() * 40 + 60);
       const estado = calidad > 80 ? 'bueno' : calidad > 70 ? 'regular' : 'malo';
 
-      await supabase
+      const { data: insertData, error: insertError } = await supabase
         .from('lecturas')
         .insert([{
           usuario_id: usuario.id,
-          litros_dia: litros,
           litros_filtrados: litros,
-          litros: litros,
           calidad_agua: calidad,
-          estado_filtro: estado
+          estado_filtro: estado,
+          timestamp: new Date().toISOString()
         }]);
 
-      console.log(`✅ Lectura insertada usuario ${usuario.id} | Litros: ${litros} | Calidad: ${calidad}% | Filtro: ${estado}`);
+      if (insertError) {
+        console.error(`❌ Error insertando lectura usuario ${usuario.id}:`, insertError);
+      } else {
+        console.log(`✅ Lectura insertada usuario ${usuario.id} | Litros: ${litros} | Calidad: ${calidad}% | Filtro: ${estado}`);
+      }
 
       // ✅ VERIFICAR SI YA EXISTE UNA ALERTA DE ESTE TIPO EN LAS ULTIMAS 24 HORAS
       const hace24Horas = new Date(Date.now() - (24 * 60 * 60 * 1000));
@@ -43,13 +46,17 @@ async function insertarLectura() {
           .limit(1);
 
         if (alertasExistentesFiltro.length === 0) {
-          await supabase
+          const { data: alertaInsert, error: alertaInsertError } = await supabase
             .from('alertas')
             .insert([{
               usuario_id: usuario.id,
               tipo_alerta: 'Filtro saturado'
             }]);
-          console.log(`🚨 NUEVA ALERTA: Filtro saturado usuario ${usuario.id}`);
+          if (alertaInsertError) {
+            console.error(`❌ Error insertando alerta filtro saturado usuario ${usuario.id}:`, alertaInsertError);
+          } else {
+            console.log(`🚨 NUEVA ALERTA: Filtro saturado usuario ${usuario.id}`);
+          }
         } else {
           console.log(`ℹ️ Ya existe alerta de filtro para usuario ${usuario.id}, no se inserta duplicado`);
         }
@@ -66,13 +73,17 @@ async function insertarLectura() {
           .limit(1);
 
         if (alertasExistentesCalidad.length === 0) {
-          await supabase
+          const { data: alertaInsert, error: alertaInsertError } = await supabase
             .from('alertas')
             .insert([{
               usuario_id: usuario.id,
               tipo_alerta: 'Calidad baja'
             }]);
-          console.log(`🚨 NUEVA ALERTA: Calidad baja usuario ${usuario.id}`);
+          if (alertaInsertError) {
+            console.error(`❌ Error insertando alerta calidad baja usuario ${usuario.id}:`, alertaInsertError);
+          } else {
+            console.log(`🚨 NUEVA ALERTA: Calidad baja usuario ${usuario.id}`);
+          }
         } else {
           console.log(`ℹ️ Ya existe alerta de calidad para usuario ${usuario.id}, no se inserta duplicado`);
         }
@@ -89,13 +100,17 @@ async function insertarLectura() {
           .limit(1);
 
         if (alertasExistentesConsumo.length === 0) {
-          await supabase
+          const { data: alertaInsert, error: alertaInsertError } = await supabase
             .from('alertas')
             .insert([{
               usuario_id: usuario.id,
               tipo_alerta: 'Consumo excesivo'
             }]);
-          console.log(`🚨 NUEVA ALERTA: Consumo excesivo usuario ${usuario.id}`);
+          if (alertaInsertError) {
+            console.error(`❌ Error insertando alerta consumo excesivo usuario ${usuario.id}:`, alertaInsertError);
+          } else {
+            console.log(`🚨 NUEVA ALERTA: Consumo excesivo usuario ${usuario.id}`);
+          }
         }
       }
     }
