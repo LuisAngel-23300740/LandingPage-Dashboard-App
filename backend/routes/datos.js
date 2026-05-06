@@ -45,8 +45,22 @@ router.get('/', async (req, res) => {
         .order('timestamp', { ascending: false })
         .limit(1);
       
-      lecturaResult = data2;
-      lecturaError = error2;
+      if (error2 && error2.code === '42703') {
+        console.log('[DEBUG] Columna litros no existe, intentando con litros_filtrados...');
+        // Intentar con nombre correcto: litros_filtrados
+        const { data: data3, error: error3 } = await supabase
+          .from('lecturas')
+          .select('litros_filtrados, calidad_agua, estado_filtro')
+          .eq('usuario_id', usuario.id)
+          .order('timestamp', { ascending: false })
+          .limit(1);
+        
+        lecturaResult = data3;
+        lecturaError = error3;
+      } else {
+        lecturaResult = data2;
+        lecturaError = error2;
+      }
     } else {
       lecturaResult = data1;
       lecturaError = error1;
@@ -86,7 +100,7 @@ router.get('/', async (req, res) => {
     let datos;
     if (lecturaResult && lecturaResult.length > 0) {
       const lectura = lecturaResult[0];
-      const litrosDia = lectura.litros_dia || lectura.litros || lectura.litros_consumidos || lectura.cantidad_litros || 0;
+      const litrosDia = lectura.litros_dia || lectura.litros || lectura.litros_consumidos || lectura.cantidad_litros || lectura.litros_filtrados || 0;
       datos = {
         litros_totales: 1250,
         litros_hoy: Math.round(parseFloat(litrosDia)),

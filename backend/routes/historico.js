@@ -51,8 +51,22 @@ router.get('/', async (req, res) => {
         .gte('timestamp', hace7Dias.toISOString())
         .order('timestamp', { ascending: true });
       
-      resultado = data2;
-      error = error2;
+      if (error2 && error2.code === '42703') {
+        console.log('[DEBUG] Columna litros no existe, intentando con litros_filtrados...');
+        // Intentar con litros_filtrados
+        const { data: data3, error: error3 } = await supabase
+          .from('lecturas')
+          .select('timestamp, litros_filtrados, calidad_agua')
+          .eq('usuario_id', usuario.id)
+          .gte('timestamp', hace7Dias.toISOString())
+          .order('timestamp', { ascending: true });
+        
+        resultado = data3;
+        error = error3;
+      } else {
+        resultado = data2;
+        error = error2;
+      }
     } else {
       resultado = data1;
       error = error1;
@@ -91,7 +105,7 @@ router.get('/', async (req, res) => {
       const actual = mapDatos.get(fecha) || { sumaLitros: 0, sumaCalidad: 0, cantidad: 0 };
       
       // Intentar con todos los posibles nombres de columna para litros
-      actual.sumaLitros += row.litros_dia || row.litros || row.litros_consumidos || row.cantidad_litros || 0;
+      actual.sumaLitros += row.litros_dia || row.litros || row.litros_consumidos || row.cantidad_litros || row.litros_filtrados || 0;
       actual.sumaCalidad += row.calidad_agua || row.calidad || 0;
       actual.cantidad += 1;
       
