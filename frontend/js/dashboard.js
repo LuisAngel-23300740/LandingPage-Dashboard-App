@@ -264,4 +264,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Cargar datos históricos para actualizar el gráfico
     cargarDatosHistoricos();
+
+    // Actualizar automaticamente cada 30 segundos
+    setInterval(() => {
+        cargarDatosDashboard();
+        cargarDatosHistoricos();
+        console.log('[AUTO-REFRESH] Datos actualizados automaticamente');
+    }, 30000);
 });
