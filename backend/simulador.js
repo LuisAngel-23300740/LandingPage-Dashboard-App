@@ -41,4 +41,5 @@ async function insertarLectura() {
 }
 
 insertarLectura();
-setInterval(insertarLectura, 60 * 60 * 1000);
+// SIMULADOR EN PAUSA - Intervalo cambiado a 6 horas (21600000 ms)
+// setInterval(insertarLectura, 6 * 60 * 60 * 1000);
