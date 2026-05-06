@@ -30,13 +30,18 @@ async function cargarDatosDashboard() {
     // Obtener token del localStorage
     const token = localStorage.getItem('token');
     
+    console.log('[DEBUG] cargarDatosDashboard()');
+    console.log('[DEBUG] Token en localStorage:', token ? `Presente (${token.substring(0, 20)}...)` : 'NO PRESENTE');
+    
     if (!token) {
         // No hay token, redirigir al login
+        console.log('[ERROR] No hay token en localStorage, redirigiendo a login');
         window.location.href = 'login.html';
         return;
     }
 
     try {
+        console.log('[DEBUG] Llamando a /api/datos con token...');
         const respuesta = await fetch('https://landingpage-dashboard-app.onrender.com/api/datos', {
             method: 'GET',
             headers: {
@@ -45,8 +50,14 @@ async function cargarDatosDashboard() {
             }
         });
 
+        console.log('[DEBUG] Respuesta status:', respuesta.status);
+        console.log('[DEBUG] Respuesta ok:', respuesta.ok);
+
         if (!respuesta.ok) {
             // Token inválido o error de autenticación
+            const errorData = await respuesta.json().catch(() => ({}));
+            console.error('[ERROR] Error en respuesta:', errorData);
+            console.log('[ERROR] Token inválido o error de autenticación, redirigiendo a login');
             localStorage.removeItem('token');
             localStorage.removeItem('userName');
             localStorage.removeItem('userEmail');
