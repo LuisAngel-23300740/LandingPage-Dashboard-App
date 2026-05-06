@@ -3,11 +3,13 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const supabase = require('../config/supabase');
 
-// Función auxiliar para obtener una fecha en formato YYYY-MM-DD (UTC)
-function getUTCDateStr(date) {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
+// Función auxiliar para obtener una fecha en formato YYYY-MM-DD (Zona Horaria México UTC-6)
+function getMexicoDateStr(date) {
+  // Ajustar a zona horaria de México (UTC-6 todo el año)
+  const mexicoDate = new Date(date.getTime() - (6 * 60 * 60 * 1000));
+  const year = mexicoDate.getUTCFullYear();
+  const month = String(mexicoDate.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(mexicoDate.getUTCDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 }
 
@@ -61,31 +63,31 @@ router.get('/', async (req, res) => {
       throw error;
     }
 
-    // Generar las 7 fechas requeridas (desde hace 6 días hasta hoy) en UTC
+    // Generar las 7 fechas requeridas (desde hace 6 días hasta hoy) en zona horaria México
     const fechasRequeridas = [];
-    const hoyUTC = new Date();
-    hoyUTC.setUTCHours(0, 0, 0, 0); // Normalizar a medianoche UTC
+    const hoyMexico = new Date();
+    hoyMexico.setUTCHours(6, 0, 0, 0); // Medianoche en México = 6:00 UTC
 
     for (let i = 6; i >= 0; i--) {
-      const fecha = new Date(hoyUTC);
-      fecha.setUTCDate(hoyUTC.getUTCDate() - i);
-      fechasRequeridas.push(getUTCDateStr(fecha));
+      const fecha = new Date(hoyMexico);
+      fecha.setUTCDate(hoyMexico.getUTCDate() - i);
+      fechasRequeridas.push(getMexicoDateStr(fecha));
     }
 
-    // Si no hay ningún dato en los últimos 7 días, devolver simulación
+    // Si no hay ningún dato en los últimos 7 días, devolver CEROS en todos los dias
     if (resultado.length === 0) {
-      const simulado = fechasRequeridas.map(fecha => ({
+      const datosVacios = fechasRequeridas.map(fecha => ({
         fecha,
-        litros: Math.floor(Math.random() * 200 + 300),
-        calidad: Math.floor(Math.random() * 20 + 75)
+        litros: 0,
+        calidad: 0
       }));
-      return res.json(simulado);
+      return res.json(datosVacios);
     }
 
     // Agrupar datos por día y calcular sumas y promedios
     const mapDatos = new Map();
     resultado.forEach(row => {
-      const fecha = getUTCDateStr(new Date(row.timestamp));
+      const fecha = getMexicoDateStr(new Date(row.timestamp));
       const actual = mapDatos.get(fecha) || { sumaLitros: 0, sumaCalidad: 0, cantidad: 0 };
       
       actual.sumaLitros += row.litros_dia || row.litros || 0;
@@ -122,25 +124,25 @@ router.get('/', async (req, res) => {
       console.error('[ERROR] JWT Error:', error.message);
       return res.status(403).json({ mensaje: 'Token inválido o expirado.', error: error.message });
     }
-    // Retornar datos por defecto
-    console.log('[DEBUG] Retornando datos por defecto debido a error');
+    // Retornar datos vacíos en caso de error
+    console.log('[DEBUG] Retornando datos vacíos debido a error');
     const fechasRequeridas = [];
-    const hoyUTC = new Date();
-    hoyUTC.setUTCHours(0, 0, 0, 0);
+    const hoyMexico = new Date();
+    hoyMexico.setUTCHours(6, 0, 0, 0);
     
     for (let i = 6; i >= 0; i--) {
-      const fecha = new Date(hoyUTC);
-      fecha.setUTCDate(hoyUTC.getUTCDate() - i);
-      fechasRequeridas.push(getUTCDateStr(fecha));
+      const fecha = new Date(hoyMexico);
+      fecha.setUTCDate(hoyMexico.getUTCDate() - i);
+      fechasRequeridas.push(getMexicoDateStr(fecha));
     }
     
-    const simulado = fechasRequeridas.map(fecha => ({
+    const datosVacios = fechasRequeridas.map(fecha => ({
       fecha,
-      litros: Math.floor(Math.random() * 200 + 300),
-      calidad: Math.floor(Math.random() * 20 + 75)
+      litros: 0,
+      calidad: 0
     }));
     
-    res.json(simulado);
+    res.json(datosVacios);
   }
 });
 
