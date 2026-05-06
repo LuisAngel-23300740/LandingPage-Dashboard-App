@@ -111,11 +111,12 @@ router.get('/', async (req, res) => {
     } else {
       console.log('[DEBUG] No hay lecturas para el usuario, retornando datos por defecto');
       datos = {
-        litros_totales: 1250,
-        litros_hoy: 32,
-        calidad_agua: 94,
-        estado_filtro: 'bueno',
-        alertas: []
+        litros_totales: 0,
+        litros_hoy: 0,
+        calidad_agua: 0,
+        estado_filtro: 'desconocido',
+        alertas: [],
+        mensaje: "No hay datos registrados aun"
       };
     }
 

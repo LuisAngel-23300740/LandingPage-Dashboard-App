@@ -21,6 +21,8 @@ async function insertarLectura() {
         .insert([{
           usuario_id: usuario.id,
           litros_dia: litros,
+          litros_filtrados: litros,
+          litros: litros,
           calidad_agua: calidad,
           estado_filtro: estado
         }]);
