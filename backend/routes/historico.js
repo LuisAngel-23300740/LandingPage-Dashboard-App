@@ -3,13 +3,18 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const supabase = require('../config/supabase');
 
-// Función auxiliar para obtener una fecha en formato YYYY-MM-DD (Zona Horaria México UTC-6)
+// Función auxiliar para obtener una fecha en formato YYYY-MM-DD en zona horaria Guadalajara
 function getMexicoDateStr(date) {
-  // Ajustar a zona horaria de México (UTC-6 todo el año)
-  const mexicoDate = new Date(date.getTime() - (6 * 60 * 60 * 1000));
-  const year = mexicoDate.getUTCFullYear();
-  const month = String(mexicoDate.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(mexicoDate.getUTCDate()).padStart(2, '0');
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Mexico_City',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(date);
+
+  const year = parts.find(p => p.type === 'year').value;
+  const month = parts.find(p => p.type === 'month').value;
+  const day = parts.find(p => p.type === 'day').value;
   return `${year}-${month}-${day}`;
 }
 
@@ -77,14 +82,14 @@ router.get('/', async (req, res) => {
       throw error;
     }
 
-    // Generar las 7 fechas requeridas (desde hace 6 días hasta hoy) en zona horaria México
+    // Generar las 7 fechas requeridas (desde hace 6 días hasta hoy) en zona horaria Guadalajara
     const fechasRequeridas = [];
-    const hoyMexico = new Date();
-    hoyMexico.setUTCHours(6, 0, 0, 0); // Medianoche en México = 6:00 UTC
+    const hoyMexicoStr = getMexicoDateStr(new Date());
+    const [hoyYear, hoyMonth, hoyDay] = hoyMexicoStr.split('-').map(Number);
+    const hoyMexicoMiddayUtc = Date.UTC(hoyYear, hoyMonth - 1, hoyDay, 12);
 
     for (let i = 6; i >= 0; i--) {
-      const fecha = new Date(hoyMexico);
-      fecha.setUTCDate(hoyMexico.getUTCDate() - i);
+      const fecha = new Date(hoyMexicoMiddayUtc - i * 24 * 60 * 60 * 1000);
       fechasRequeridas.push(getMexicoDateStr(fecha));
     }
 
@@ -142,12 +147,12 @@ router.get('/', async (req, res) => {
     // Retornar datos vacíos en caso de error
     console.log('[DEBUG] Retornando datos vacíos debido a error');
     const fechasRequeridas = [];
-    const hoyMexico = new Date();
-    hoyMexico.setUTCHours(6, 0, 0, 0);
-    
+    const hoyMexicoStr = getMexicoDateStr(new Date());
+    const [hoyYear, hoyMonth, hoyDay] = hoyMexicoStr.split('-').map(Number);
+    const hoyMexicoMiddayUtc = Date.UTC(hoyYear, hoyMonth - 1, hoyDay, 12);
+
     for (let i = 6; i >= 0; i--) {
-      const fecha = new Date(hoyMexico);
-      fecha.setUTCDate(hoyMexico.getUTCDate() - i);
+      const fecha = new Date(hoyMexicoMiddayUtc - i * 24 * 60 * 60 * 1000);
       fechasRequeridas.push(getMexicoDateStr(fecha));
     }
     

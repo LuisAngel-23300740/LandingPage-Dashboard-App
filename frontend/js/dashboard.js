@@ -25,6 +25,16 @@ function animateCounter(element, target) {
     setTimeout(updateCount, 300);
 }
 
+// Generar etiquetas para los últimos 7 días en zona horaria Guadalajara
+function getLast7DayLabels() {
+    const labels = [];
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+        labels.push(new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Mexico_City', weekday: 'short' }).format(date));
+    }
+    return labels;
+}
+
 // Cargar datos del dashboard desde la API
 async function cargarDatosDashboard() {
     // Obtener token del localStorage
@@ -125,7 +135,7 @@ async function cargarDatosDashboard() {
             datos.alertas.forEach(alerta => {
                 const fila = document.createElement('tr');
                 fila.innerHTML = `
-                    <td>${new Date(alerta.fecha).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                    <td>${new Date(alerta.fecha).toLocaleString('es-MX', { timeZone: 'America/Mexico_City', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
                     <td><span style="color: ${alerta.tipo === 'Filtro saturado' ? '#ef4444' : alerta.tipo === 'Calidad baja' ? '#f59e0b' : '#3b82f6'};">${alerta.tipo}</span></td>
                     <td>${alerta.descripcion}</td>
                 `;
@@ -157,7 +167,7 @@ function inicializarGrafico(datosConsumo = [350, 420, 380, 500, 450, 600, 480]) 
     dashboardChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'],
+            labels: getLast7DayLabels(),
             datasets: [{
                 label: 'Consumo (Litros)',
                 data: datosConsumo,
@@ -236,7 +246,12 @@ async function cargarDatosHistoricos() {
             // Extraer solo los valores de litros para el gráfico
             const valoresLitros = datosHistoricos.map(dia => Number(dia.litros) || 0);
             
-            // Actualizar datos del gráfico con los últimos 7 días
+            // Actualizar etiquetas del gráfico de acuerdo a la zona horaria Guadalajara
+            const etiquetas = datosHistoricos.map(dia => {
+                const localDate = new Date(`${dia.fecha}T12:00:00`);
+                return new Intl.DateTimeFormat('es-MX', { timeZone: 'America/Mexico_City', weekday: 'short' }).format(localDate);
+            });
+            dashboardChart.data.labels = etiquetas;
             dashboardChart.data.datasets[0].data = valoresLitros;
             dashboardChart.update();
         }

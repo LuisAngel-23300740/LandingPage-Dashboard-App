@@ -1,5 +1,13 @@
 const supabase = require('./config/supabase');
 
+function getGuadalajaraTimestamp() {
+  const mexicoDateTime = new Date().toLocaleString('sv', {
+    timeZone: 'America/Mexico_City',
+    hour12: false
+  });
+  return mexicoDateTime.replace(' ', 'T');
+}
+
 async function insertarLectura() {
   try {
     const { data: usuarios, error } = await supabase
@@ -23,7 +31,7 @@ async function insertarLectura() {
           litros_filtrados: litros,
           calidad_agua: calidad,
           estado_filtro: estado,
-          timestamp: new Date().toISOString()
+          timestamp: getGuadalajaraTimestamp()
         }]);
 
       if (insertError) {
