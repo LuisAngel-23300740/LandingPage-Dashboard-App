@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const pool = require('../db');
+const supabase = require('../config/supabase');
 
 // Función auxiliar para obtener una fecha en formato YYYY-MM-DD (UTC)
 function getUTCDateStr(date) {
@@ -22,19 +22,21 @@ router.get('/', async (req, res) => {
   try {
     const usuario = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Consulta: devuelve la fecha en formato texto (YYYY-MM-DD) usando UTC
-    const resultado = await pool.query(
-      `SELECT 
-         TO_CHAR(timestamp AT TIME ZONE 'UTC', 'YYYY-MM-DD') as fecha,
-         SUM(litros_dia) as litros,
-         AVG(calidad_agua) as calidad
-       FROM lecturas
-       WHERE usuario_id = $1
-         AND timestamp >= NOW() - INTERVAL '7 days'
-       GROUP BY TO_CHAR(timestamp AT TIME ZONE 'UTC', 'YYYY-MM-DD')
-       ORDER BY fecha ASC`,
-      [usuario.id]
-    );
+    // Obtener lecturas de los últimos 7 días desde Supabase
+    const hace7Dias = new Date();
+    hace7Dias.setDate(hace7Dias.getDate() - 7);
+
+    const { data: resultado, error } = await supabase
+      .from('lecturas')
+      .select('timestamp, litros_dia, calidad_agua')
+      .eq('usuario_id', usuario.id)
+      .gte('timestamp', hace7Dias.toISOString())
+      .order('timestamp', { ascending: true });
+
+    if (error) {
+      console.error('Error obteniendo histórico:', error);
+      throw error;
+    }
 
     // Generar las 7 fechas requeridas (desde hace 6 días hasta hoy) en UTC
     const fechasRequeridas = [];
@@ -48,7 +50,7 @@ router.get('/', async (req, res) => {
     }
 
     // Si no hay ningún dato en los últimos 7 días, devolver simulación
-    if (resultado.rows.length === 0) {
+    if (resultado.length === 0) {
       const simulado = fechasRequeridas.map(fecha => ({
         fecha,
         litros: Math.floor(Math.random() * 200 + 300),
@@ -57,20 +59,33 @@ router.get('/', async (req, res) => {
       return res.json(simulado);
     }
 
-    // Mapear los datos reales por fecha (las fechas ya son strings YYYY-MM-DD)
+    // Agrupar datos por día y calcular sumas y promedios
     const mapDatos = new Map();
-    resultado.rows.forEach(row => {
-      mapDatos.set(row.fecha, {
-        litros: Math.round(row.litros),
-        calidad: Math.round(row.calidad)
+    resultado.forEach(row => {
+      const fecha = getUTCDateStr(new Date(row.timestamp));
+      const actual = mapDatos.get(fecha) || { sumaLitros: 0, sumaCalidad: 0, cantidad: 0 };
+      
+      actual.sumaLitros += row.litros_dia;
+      actual.sumaCalidad += row.calidad_agua;
+      actual.cantidad += 1;
+      
+      mapDatos.set(fecha, actual);
+    });
+
+    // Convertir sumas a valores finales
+    const datosPorDia = new Map();
+    mapDatos.forEach((val, fecha) => {
+      datosPorDia.set(fecha, {
+        litros: Math.round(val.sumaLitros),
+        calidad: Math.round(val.sumaCalidad / val.cantidad)
       });
     });
 
     // Construir el histórico completo (rellenando con ceros donde falte)
     const historicoCompleto = fechasRequeridas.map(fecha => ({
       fecha,
-      litros: mapDatos.get(fecha)?.litros ?? 0,
-      calidad: mapDatos.get(fecha)?.calidad ?? 0
+      litros: datosPorDia.get(fecha)?.litros ?? 0,
+      calidad: datosPorDia.get(fecha)?.calidad ?? 0
     }));
 
     // Enviar la respuesta (con cabecera anti-caché opcional)

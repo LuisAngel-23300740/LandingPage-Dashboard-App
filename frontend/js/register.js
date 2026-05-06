@@ -60,11 +60,17 @@ document.getElementById('registerForm').addEventListener('submit', async functio
         // Guardar datos del usuario recien registrado
         localStorage.setItem('userName', name);
         localStorage.setItem('userEmail', email);
-        if (result.token) localStorage.setItem('token', result.token);
-        
-        // Redirigir automaticamente al dashboard despues de 1.5 segundos
+        if (result.token) {
+          localStorage.setItem('token', result.token);
+        }
+
+        // Redirigir automaticamente después de 1.5 segundos
         setTimeout(() => {
-          window.location.href = 'dashboard.html';
+          if (result.token) {
+            window.location.href = 'dashboard.html';
+          } else {
+            window.location.href = 'login.html';
+          }
         }, 1500);
       } else {
         const msg = result.message || 'Error al registrar, intenta de nuevo.';

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const pool = require('../db');
+const supabase = require('../config/supabase');
 
 router.get('/', async (req, res) => {
   const authHeader = req.headers['authorization'];
@@ -14,25 +14,33 @@ router.get('/', async (req, res) => {
   try {
     const usuario = jwt.verify(token, process.env.JWT_SECRET);
 
-    const lecturaResult = await pool.query(
-      `SELECT litros_dia, calidad_agua, estado_filtro
-       FROM lecturas
-       WHERE usuario_id = $1
-       ORDER BY timestamp DESC
-       LIMIT 1`,
-      [usuario.id]
-    );
+    // Obtener última lectura del usuario desde Supabase
+    const { data: lecturaResult, error: lecturaError } = await supabase
+      .from('lecturas')
+      .select('litros_dia, calidad_agua, estado_filtro')
+      .eq('usuario_id', usuario.id)
+      .order('timestamp', { ascending: false })
+      .limit(1);
 
-    const alertasResult = await pool.query(
-      `SELECT timestamp, tipo_alerta
-       FROM alertas
-       WHERE usuario_id = $1
-       ORDER BY timestamp DESC
-       LIMIT 5`,
-      [usuario.id]
-    );
+    if (lecturaError) {
+      console.error('Error obteniendo lecturas:', lecturaError);
+      throw lecturaError;
+    }
 
-    const alertas = alertasResult.rows.map(a => ({
+    // Obtener últimas alertas del usuario desde Supabase
+    const { data: alertasResult, error: alertasError } = await supabase
+      .from('alertas')
+      .select('timestamp, tipo_alerta')
+      .eq('usuario_id', usuario.id)
+      .order('timestamp', { ascending: false })
+      .limit(5);
+
+    if (alertasError) {
+      console.error('Error obteniendo alertas:', alertasError);
+      throw alertasError;
+    }
+
+    const alertas = alertasResult.map(a => ({
       fecha: a.timestamp,
       tipo: a.tipo_alerta,
       descripcion:
@@ -42,8 +50,8 @@ router.get('/', async (req, res) => {
     }));
 
     let datos;
-    if (lecturaResult.rows.length > 0) {
-      const lectura = lecturaResult.rows[0];
+    if (lecturaResult.length > 0) {
+      const lectura = lecturaResult[0];
       datos = {
         litros_totales: 1250,
         litros_hoy: Math.round(parseFloat(lectura.litros_dia)),

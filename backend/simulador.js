@@ -1,37 +1,49 @@
-const pool = require('./db');
+const supabase = require('./config/supabase');
 
 async function insertarLectura() {
   try {
-    const usuarios = await pool.query('SELECT id FROM usuarios');
+    const { data: usuarios, error } = await supabase
+      .from('usuarios')
+      .select('id');
 
-    for (const usuario of usuarios.rows) {
+    if (error) {
+      console.error('Error obteniendo usuarios:', error);
+      return;
+    }
+
+    for (const usuario of usuarios) {
       const litros = Math.floor(Math.random() * 200 + 300);
       const calidad = Math.floor(Math.random() * 40 + 60);
       const estado = calidad > 80 ? 'bueno' : calidad > 70 ? 'regular' : 'malo';
 
-      await pool.query(
-        `INSERT INTO lecturas (usuario_id, timestamp, litros_dia, calidad_agua, estado_filtro)
-         VALUES ($1, NOW(), $2, $3, $4)`,
-        [usuario.id, litros, calidad, estado]
-      );
+      await supabase
+        .from('lecturas')
+        .insert([{
+          usuario_id: usuario.id,
+          litros_dia: litros,
+          calidad_agua: calidad,
+          estado_filtro: estado
+        }]);
 
       console.log(`Lectura insertada para usuario ${usuario.id} — calidad: ${calidad}, filtro: ${estado}`);
 
       if (estado === 'malo') {
-        await pool.query(
-          `INSERT INTO alertas (usuario_id, timestamp, tipo_alerta)
-           VALUES ($1, NOW(), $2)`,
-          [usuario.id, 'Filtro saturado']
-        );
+        await supabase
+          .from('alertas')
+          .insert([{
+            usuario_id: usuario.id,
+            tipo_alerta: 'Filtro saturado'
+          }]);
         console.log(`Alerta "Filtro saturado" insertada para usuario ${usuario.id}`);
       }
 
       if (calidad < 75) {
-        await pool.query(
-          `INSERT INTO alertas (usuario_id, timestamp, tipo_alerta)
-           VALUES ($1, NOW(), $2)`,
-          [usuario.id, 'Calidad baja']
-        );
+        await supabase
+          .from('alertas')
+          .insert([{
+            usuario_id: usuario.id,
+            tipo_alerta: 'Calidad baja'
+          }]);
         console.log(`Alerta "Calidad baja" insertada para usuario ${usuario.id}`);
       }
     }
@@ -40,5 +52,5 @@ async function insertarLectura() {
   }
 }
 
-insertarLectura();
-setInterval(insertarLectura, 60 * 60 * 1000);
+//insertarLectura();
+//setInterval(insertarLectura, 60 * 60 * 1000);

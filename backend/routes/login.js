@@ -2,21 +2,28 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const pool = require('../db');
+const supabase = require('../config/supabase');
 
 router.post('/', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const resultado = await pool.query(
-      'SELECT * FROM usuarios WHERE email = $1', [email]
-    );
+    const { data: usuarios, error } = await supabase
+      .from('usuarios')
+      .select('*')
+      .eq('email', email)
+      .limit(1);
 
-    if (resultado.rows.length === 0) {
+    if (error) {
+      console.error('Error consultando usuario:', error);
+      throw error;
+    }
+
+    if (usuarios.length === 0) {
       return res.status(401).json({ message: 'Credenciales incorrectas.' });
     }
 
-    const usuario = resultado.rows[0];
+    const usuario = usuarios[0];
     const passwordValido = await bcrypt.compare(password, usuario.password);
 
     if (!passwordValido) {
