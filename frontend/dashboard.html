@@ -21,19 +21,15 @@
       Panel de Control</p>
 
     <nav>
-      <div class="sidebar-nav-item active">
+      <div class="sidebar-nav-item active" data-section="section-resumen">
         <span>📊</span>
         <span>Resumen</span>
       </div>
-      <div class="sidebar-nav-item">
+      <div class="sidebar-nav-item" data-section="section-historial">
         <span>📈</span>
         <span>Historial</span>
       </div>
-      <div class="sidebar-nav-item">
-        <span>📡</span>
-        <span>Dispositivos</span>
-      </div>
-      <div class="sidebar-nav-item">
+      <div class="sidebar-nav-item" data-section="section-configuracion">
         <span>⚙️</span>
         <span>Configuración</span>
       </div>
@@ -51,62 +47,101 @@
       </div>
     </header>
 
-    <div class="cards-grid">
-      <div class="stat-card">
-        <div class="stat-card-content">
-          <div>
-            <h4>Litros totales</h4>
-            <div id="litrosTotalesElem" class="value">0 L</div>
+    <div class="content-section active" id="section-resumen">
+      <div class="cards-grid">
+        <div class="stat-card">
+          <div class="stat-card-content">
+            <div>
+              <h4>Litros totales</h4>
+              <div id="litrosTotalesElem" class="value">0 L</div>
+            </div>
+            <div class="stat-card-icon">💧</div>
           </div>
-          <div class="stat-card-icon">💧</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-content">
+            <div>
+              <h4>Litros hoy</h4>
+              <div id="litrosHoyElem" class="value">0 L</div>
+            </div>
+            <div class="stat-card-icon">📅</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card-content">
+            <div>
+              <h4>Calidad del Agua</h4>
+              <div id="calidadAguaElem" class="value">--</div>
+            </div>
+            <div class="stat-card-icon">✅</div>
+          </div>
         </div>
       </div>
 
-      <div class="stat-card">
-        <div class="stat-card-content">
-          <div>
-            <h4>Litros hoy</h4>
-            <div id="litrosHoyElem" class="value">0 L</div>
-          </div>
-          <div class="stat-card-icon">📅</div>
-        </div>
-      </div>
+      <!-- Sección de Alertas -->
+      <div class="alerts-section">
+        <h4>⚠️ Alertas Recientes</h4>
 
-      <div class="stat-card">
-        <div class="stat-card-content">
-          <div>
-            <h4>Calidad del Agua</h4>
-            <div id="calidadAguaElem" class="value">--</div>
+        <div class="alerts-table-container">
+          <table id="alertsTable">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Tipo de alerta</th>
+                <th>Descripción</th>
+              </tr>
+            </thead>
+            <tbody id="alertsTableBody">
+              <!-- Las filas se insertarán dinámicamente aquí -->
+            </tbody>
+          </table>
+          <div id="noAlertsMessage">
+            No hay alertas recientes
           </div>
-          <div class="stat-card-icon">✅</div>
         </div>
       </div>
     </div>
 
-    <div class="chart-container">
-      <h4>📈 Consumo Semanal</h4>
-      <canvas id="dashboardChart"></canvas>
-    </div>
+    <div class="content-section" id="section-historial">
+      <div class="chart-container">
+        <h4>📈 Historial de Consumo</h4>
+        <canvas id="dashboardChart"></canvas>
+      </div>
 
-    <!-- Sección de Alertas -->
-    <div class="alerts-section">
-      <h4>⚠️ Alertas Recientes</h4>
-
-      <div class="alerts-table-container">
-        <table id="alertsTable">
+      <div class="history-table-container">
+        <h4 style="margin-top: 40px;">📅 Registro Semanal</h4>
+        <table id="historyTable">
           <thead>
             <tr>
               <th>Fecha</th>
-              <th>Tipo de alerta</th>
-              <th>Descripción</th>
+              <th>Litros</th>
+              <th>Calidad</th>
             </tr>
           </thead>
-          <tbody id="alertsTableBody">
-            <!-- Las filas se insertarán dinámicamente aquí -->
-          </tbody>
+          <tbody id="historyTableBody"></tbody>
         </table>
-        <div id="noAlertsMessage">
-          No hay alertas recientes
+        <div id="noHistoryMessage">No hay datos históricos disponibles</div>
+      </div>
+    </div>
+
+    <div class="content-section" id="section-configuracion">
+      <div class="config-grid">
+        <div class="config-card">
+          <h4>Actualiza tus datos</h4>
+          <p>Vuelve a cargar la información del panel para asegurarte de ver los datos más recientes.</p>
+          <button id="btnRefreshData">Refrescar datos</button>
+        </div>
+
+        <div class="config-card">
+          <h4>Información de usuario</h4>
+          <p id="configUserInfo">Cargando información del usuario...</p>
+        </div>
+
+        <div class="config-card">
+          <h4>Soporte</h4>
+          <p>Si necesitas ayuda, puedes cerrar sesión y volver a ingresar, o contacta con el administrador.</p>
         </div>
       </div>
     </div>

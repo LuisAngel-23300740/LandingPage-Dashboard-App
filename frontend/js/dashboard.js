@@ -25,6 +25,48 @@ function animateCounter(element, target) {
     setTimeout(updateCount, 300);
 }
 
+function showSection(sectionId) {
+    document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.toggle('active', section.id === sectionId);
+    });
+
+    document.querySelectorAll('.sidebar-nav-item').forEach(item => {
+        item.classList.toggle('active', item.dataset.section === sectionId);
+    });
+}
+
+function setConfigUserInfo() {
+    const email = localStorage.getItem('userEmail') || localStorage.getItem('email') || 'No disponible';
+    const name = localStorage.getItem('userName') || localStorage.getItem('nombre') || localStorage.getItem('name') || 'Usuario';
+    const info = document.getElementById('configUserInfo');
+    if (info) {
+        info.innerHTML = `<strong>${name}</strong><br>${email}`;
+    }
+}
+
+function populateHistoryTable(datosHistoricos) {
+    const historyTableBody = document.getElementById('historyTableBody');
+    const noHistoryMessage = document.getElementById('noHistoryMessage');
+    if (!historyTableBody || !noHistoryMessage) return;
+
+    historyTableBody.innerHTML = '';
+    if (!datosHistoricos || datosHistoricos.length === 0) {
+        noHistoryMessage.style.display = 'block';
+        return;
+    }
+
+    noHistoryMessage.style.display = 'none';
+    datosHistoricos.forEach(dia => {
+        const fila = document.createElement('tr');
+        fila.innerHTML = `
+            <td>${new Date(`${dia.fecha}T12:00:00`).toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City', day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
+            <td>${Number(dia.litros) || 0}</td>
+            <td>${Number(dia.calidad) || 0}%</td>
+        `;
+        historyTableBody.appendChild(fila);
+    });
+}
+
 // Generar etiquetas para los últimos 7 días en zona horaria Guadalajara
 function getLast7DayLabels() {
     const labels = [];
@@ -254,6 +296,9 @@ async function cargarDatosHistoricos() {
             dashboardChart.data.labels = etiquetas;
             dashboardChart.data.datasets[0].data = valoresLitros;
             dashboardChart.update();
+            populateHistoryTable(datosHistoricos);
+        } else {
+            populateHistoryTable([]);
         }
 
     } catch (error) {
@@ -279,6 +324,28 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Cargar datos históricos para actualizar el gráfico
     cargarDatosHistoricos();
+
+    // Configurar navegación lateral
+    document.querySelectorAll('.sidebar-nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            if (item.dataset.section) {
+                showSection(item.dataset.section);
+            }
+        });
+    });
+
+    // Cargar información de configuración
+    setConfigUserInfo();
+
+    const refreshBtn = document.getElementById('btnRefreshData');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            cargarDatosDashboard();
+            cargarDatosHistoricos();
+        });
+    }
+
+    showSection('section-resumen');
 
     // Actualizar automaticamente cada 30 segundos
     setInterval(() => {
