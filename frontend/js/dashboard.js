@@ -95,7 +95,13 @@ async function refreshDashboardData() {
     }
 }
 
-const API_URL = '/api';
+// Use relative API paths in producción y localhost during desarrollo
+const API_URL = (function getApiUrl() {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') {
+        return 'http://localhost:3000/api';
+    }
+    return '/api';
+})();
 
 // Generar etiquetas para los últimos 7 días en zona horaria Guadalajara
 function getLast7DayLabels() {
@@ -108,13 +114,6 @@ function getLast7DayLabels() {
 }
 
 // Cargar datos del dashboard desde la API
-const API_URL = (function getApiUrl() {
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') {
-        return 'http://localhost:3000/api';
-    }
-    return 'https://landingpage-dashboard-app.onrender.com/api';
-})();
-
 async function cargarDatosDashboard() {
     // Obtener token del localStorage
     const token = localStorage.getItem('token');
