@@ -1,13 +1,128 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/swipeRefresh"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
 
-    <Text
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Dashboard"
-        android:textSize="24sp" />
-</LinearLayout>
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Panel de control"
+                android:textAppearance="@android:style/TextAppearance.Large"
+                android:layout_marginBottom="16dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2"
+                android:layout_marginBottom="12dp">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:id="@+id/tvLitrosTotales"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Litros totales"
+                        android:textAppearance="@android:style/TextAppearance.Medium" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:id="@+id/tvLitrosHoy"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Litros hoy"
+                        android:textAppearance="@android:style/TextAppearance.Medium" />
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:weightSum="2"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:id="@+id/tvCalidadAgua"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Calidad del agua"
+                        android:textAppearance="@android:style/TextAppearance.Medium" />
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:id="@+id/tvEstadoFiltro"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Estado del filtro"
+                        android:textAppearance="@android:style/TextAppearance.Medium" />
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnHistorico"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Ver historial"
+                android:layout_marginBottom="16dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Alertas recientes"
+                android:textAppearance="@android:style/TextAppearance.Small"
+                android:layout_marginBottom="8dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvAlertas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false" />
+
+            <ProgressBar
+                android:id="@+id/progressDashboard"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:visibility="gone"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_marginTop="16dp" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

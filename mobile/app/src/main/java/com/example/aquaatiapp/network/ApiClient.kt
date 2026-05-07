@@ -7,7 +7,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object ApiClient {
-    private const val BASE_URL = "https://landingpage-dashboard-app-production.up.railway.app/"
+    private const val BASE_URL = "https://landingpage-dashboard-app.onrender.com/"
     private var token: String? = null
 
     fun setToken(newToken: String) {
