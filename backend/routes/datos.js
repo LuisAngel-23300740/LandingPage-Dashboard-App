@@ -46,82 +46,36 @@ router.get('/', async (req, res) => {
     const usuario = jwt.verify(token, process.env.JWT_SECRET);
     console.log('[DEBUG] Token válido. Usuario ID:', usuario.id);
 
-    // Obtener última lectura del usuario desde Supabase
-    // Intentar con diferentes nombres de columnas posibles
-    let lecturaResult = null;
-    let lecturaError = null;
-    
-    // Intentar con nombre de columna: litros_dia
-    const { data: data1, error: error1 } = await supabase
-      .from('lecturas')
-      .select('litros_dia, calidad_agua, estado_filtro')
-      .eq('usuario_id', usuario.id)
-      .order('timestamp', { ascending: false })
-      .limit(1);
-    
-    if (error1 && error1.code === '42703') {
-      console.log('[DEBUG] Columna litros_dia no existe, intentando con litros...');
-      // Intentar con nombre alternativo: litros
-      const { data: data2, error: error2 } = await supabase
-        .from('lecturas')
-        .select('litros, calidad_agua, estado_filtro')
-        .eq('usuario_id', usuario.id)
-        .order('timestamp', { ascending: false })
-        .limit(1);
-      
-      if (error2 && error2.code === '42703') {
-        console.log('[DEBUG] Columna litros no existe, intentando con litros_filtrados...');
-        // Intentar con nombre correcto: litros_filtrados
-        const { data: data3, error: error3 } = await supabase
-          .from('lecturas')
-          .select('litros_filtrados, calidad_agua, estado_filtro')
-          .eq('usuario_id', usuario.id)
-          .order('timestamp', { ascending: false })
-          .limit(1);
-        
-        lecturaResult = data3;
-        lecturaError = error3;
-      } else {
-        lecturaResult = data2;
-        lecturaError = error2;
-      }
-    } else {
-      lecturaResult = data1;
-      lecturaError = error1;
+    function getLitrosValue(row) {
+      return Number(row.litros_dia ?? row.litros ?? row.litros_filtrados ?? row.litros_consumidos ?? row.cantidad_litros ?? 0) || 0;
     }
 
-    // ✅ CORREGIDO: No lanzar excepcion aunque sea error 42703, siempre ignorar errores de columna
-    if (lecturaError) {
-      console.error('Error obteniendo lecturas:', lecturaError);
-      // ✅ NO THROW, simplemente seguimos con datos por defecto
-      lecturaResult = [];
+    function getLatestReading(lecturas) {
+      if (!lecturas || lecturas.length === 0) return null;
+      return lecturas[0];
     }
-    
-    // ✅ Seguridad: asegurar que lecturaResult nunca sea null
-    lecturaResult = lecturaResult || [];
 
-    // Calcular litros_hoy como suma de lecturas de hoy
     const hoyMexico = getMexicoDateStr(new Date());
     let litrosHoy = 0;
     let litrosTotales = 0;
+    let calidadAgua = 0;
+    let estadoFiltro = 'desconocido';
 
-    if (lecturaResult && lecturaResult.length > 0) {
-      // Obtener todas las lecturas para calcular totales
-      const { data: todasLecturas, error: errorTodas } = await supabase
-        .from('lecturas')
-        .select('timestamp, litros_filtrados, litros, litros_dia')
-        .eq('usuario_id', usuario.id)
-        .order('timestamp', { ascending: false });
+    const { data: todasLecturas, error: errorTodas } = await supabase
+      .from('lecturas')
+      .select('timestamp, litros_filtrados, litros, litros_dia, calidad_agua, estado_filtro')
+      .eq('usuario_id', usuario.id)
+      .order('timestamp', { ascending: false });
 
-      if (!errorTodas && todasLecturas) {
-        // Calcular litros_hoy
-        litrosHoy = todasLecturas
-          .filter(row => getMexicoDateStr(parseTimestamp(row.timestamp)) === hoyMexico)
-          .reduce((sum, row) => sum + (row.litros_filtrados || row.litros || row.litros_dia || 0), 0);
+    if (!errorTodas && todasLecturas && todasLecturas.length > 0) {
+      const latest = getLatestReading(todasLecturas);
+      calidadAgua = latest.calidad_agua ?? 0;
+      estadoFiltro = latest.estado_filtro ?? 'desconocido';
 
-        // Calcular litros_totales
-        litrosTotales = todasLecturas.reduce((sum, row) => sum + (row.litros_filtrados || row.litros || row.litros_dia || 0), 0);
-      }
+      litrosTotales = todasLecturas.reduce((sum, row) => sum + getLitrosValue(row), 0);
+      litrosHoy = todasLecturas
+        .filter(row => getMexicoDateStr(parseTimestamp(row.timestamp)) === hoyMexico)
+        .reduce((sum, row) => sum + getLitrosValue(row), 0);
     }
 
     // Obtener últimas alertas del usuario desde Supabase
@@ -145,28 +99,13 @@ router.get('/', async (req, res) => {
       }));
     }
 
-    let datos;
-    if (lecturaResult && lecturaResult.length > 0) {
-      const lectura = lecturaResult[0];
-      const litrosDia = lectura.litros_dia || lectura.litros || lectura.litros_consumidos || lectura.cantidad_litros || lectura.litros_filtrados || 0;
-      datos = {
-        litros_totales: Math.round(litrosTotales),
-        litros_hoy: Math.round(litrosHoy),
-        calidad_agua: lectura.calidad_agua || 94,
-        estado_filtro: lectura.estado_filtro || 'bueno',
-        alertas
-      };
-    } else {
-      console.log('[DEBUG] No hay lecturas para el usuario, retornando datos por defecto');
-      datos = {
-        litros_totales: 0,
-        litros_hoy: 0,
-        calidad_agua: 0,
-        estado_filtro: 'desconocido',
-        alertas: alertas,
-        mensaje: "No hay datos registrados aun"
-      };
-    }
+    const datos = {
+      litros_totales: Math.round(litrosTotales),
+      litros_hoy: Math.round(litrosHoy),
+      calidad_agua: calidadAgua,
+      estado_filtro: estadoFiltro,
+      alertas
+    };
 
     console.log('[DEBUG] Retornando datos exitosamente:', datos);
     res.json(datos);

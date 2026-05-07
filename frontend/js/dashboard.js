@@ -157,20 +157,13 @@ async function cargarDatosDashboard() {
         const datos = await respuesta.json();
         
         // Actualizar tarjetas con datos recibidos
-        // Litros totales
-        const litrosTotales = datos.litros_totales || 0;
-        const cardLitrosTotales = document.querySelectorAll('.stat-card .value')[0];
-        animateCounter(cardLitrosTotales, litrosTotales);
+        const litrosTotales = Number(datos.litros_totales) || 0;
+        const litrosHoy = Number(datos.litros_hoy) || 0;
+        const calidadAgua = Number(datos.calidad_agua) || 0;
 
-        // Litros filtrados hoy
-        const litrosHoy = datos.litros_hoy || 0;
-        const cardLitrosHoy = document.querySelectorAll('.stat-card .value')[1];
-        animateCounter(cardLitrosHoy, litrosHoy);
-
-        // Calidad del agua
-        const calidadAgua = datos.calidad_agua || 0;
-        const cardCalidad = document.querySelectorAll('.stat-card .value')[2];
-        cardCalidad.innerText = `${calidadAgua}%`;
+        animateCounter(document.getElementById('litrosTotalesElem'), litrosTotales);
+        animateCounter(document.getElementById('litrosHoyElem'), litrosHoy);
+        document.getElementById('calidadAguaElem').innerText = `${calidadAgua}%`;
 
         // Estado del filtro
         const estadoFiltro = datos.estado_filtro || 'Desconocido';
