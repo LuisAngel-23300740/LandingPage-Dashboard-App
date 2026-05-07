@@ -3,6 +3,21 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const supabase = require('../config/supabase');
 
+// Función auxiliar para obtener una fecha en formato YYYY-MM-DD en zona horaria Guadalajara
+function getMexicoDateStr(date) {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Mexico_City',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).formatToParts(date);
+
+  const year = parts.find(p => p.type === 'year').value;
+  const month = parts.find(p => p.type === 'month').value;
+  const day = parts.find(p => p.type === 'day').value;
+  return `${year}-${month}-${day}`;
+}
+
 router.get('/', async (req, res) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
@@ -76,6 +91,30 @@ router.get('/', async (req, res) => {
     // ✅ Seguridad: asegurar que lecturaResult nunca sea null
     lecturaResult = lecturaResult || [];
 
+    // Calcular litros_hoy como suma de lecturas de hoy
+    const hoyMexico = getMexicoDateStr(new Date());
+    let litrosHoy = 0;
+    let litrosTotales = 0;
+
+    if (lecturaResult && lecturaResult.length > 0) {
+      // Obtener todas las lecturas para calcular totales
+      const { data: todasLecturas, error: errorTodas } = await supabase
+        .from('lecturas')
+        .select('timestamp, litros_filtrados, litros, litros_dia')
+        .eq('usuario_id', usuario.id)
+        .order('timestamp', { ascending: false });
+
+      if (!errorTodas && todasLecturas) {
+        // Calcular litros_hoy
+        litrosHoy = todasLecturas
+          .filter(row => getMexicoDateStr(new Date(row.timestamp)) === hoyMexico)
+          .reduce((sum, row) => sum + (row.litros_filtrados || row.litros || row.litros_dia || 0), 0);
+
+        // Calcular litros_totales
+        litrosTotales = todasLecturas.reduce((sum, row) => sum + (row.litros_filtrados || row.litros || row.litros_dia || 0), 0);
+      }
+    }
+
     // Obtener últimas alertas del usuario desde Supabase
     const { data: alertasResult, error: alertasError } = await supabase
       .from('alertas')
@@ -102,8 +141,8 @@ router.get('/', async (req, res) => {
       const lectura = lecturaResult[0];
       const litrosDia = lectura.litros_dia || lectura.litros || lectura.litros_consumidos || lectura.cantidad_litros || lectura.litros_filtrados || 0;
       datos = {
-        litros_totales: 1250,
-        litros_hoy: Math.round(parseFloat(litrosDia)),
+        litros_totales: Math.round(litrosTotales),
+        litros_hoy: Math.round(litrosHoy),
         calidad_agua: lectura.calidad_agua || 94,
         estado_filtro: lectura.estado_filtro || 'bueno',
         alertas
@@ -133,8 +172,8 @@ router.get('/', async (req, res) => {
     // Retornar datos por defecto en lugar de fallar completamente
     console.log('[DEBUG] Retornando datos por defecto debido a error');
     res.json({
-      litros_totales: 1250,
-      litros_hoy: 32,
+      litros_totales: 0,
+      litros_hoy: 0,
       calidad_agua: 94,
       estado_filtro: 'bueno',
       alertas: []

@@ -1,11 +1,7 @@
 const supabase = require('./config/supabase');
 
 function getGuadalajaraTimestamp() {
-  const mexicoDateTime = new Date().toLocaleString('sv', {
-    timeZone: 'America/Mexico_City',
-    hour12: false
-  });
-  return mexicoDateTime.replace(' ', 'T');
+  return new Date().toISOString();
 }
 
 async function insertarLectura() {
