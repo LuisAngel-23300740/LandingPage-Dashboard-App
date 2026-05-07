@@ -1,9 +1,11 @@
 package com.example.aquaatiapp.data.model
 
+import com.google.gson.annotations.SerializedName
+
 data class DatosResponse(
-    val litros_totales: Double,
-    val litros_hoy: Double,
-    val calidad_agua: Int,      // porcentaje (0-100)
-    val estado_filtro: String,  // "bueno", "regular", "malo"
-    val alertas: List<Alerta>   // lista de alertas
+    @SerializedName("litros_totales") val litrosTotales: Double,
+    @SerializedName("litros_hoy") val litrosHoy: Double,
+    @SerializedName("calidad_agua") val calidadAgua: Int,
+    @SerializedName("estado_filtro") val estadoFiltro: String,
+    val alertas: List<Alerta>
 )
