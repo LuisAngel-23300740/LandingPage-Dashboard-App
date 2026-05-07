@@ -1,23 +1,25 @@
 package com.example.aquaatiapp.utils
 
 import android.content.Context
+import android.content.SharedPreferences
 
-object TokenManager {
-    private const val PREFS_NAME = "aquaati_prefs"
-    private const val KEY_TOKEN = "auth_token"
+class TokenManager(context: Context) {
+    private val prefs: SharedPreferences =
+        context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
 
-    fun saveToken(context: Context, token: String) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putString(KEY_TOKEN, token).apply()
+    companion object {
+        private const val TOKEN_KEY = "auth_token"
     }
 
-    fun getToken(context: Context): String? {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getString(KEY_TOKEN, null)
+    fun saveToken(token: String) {
+        prefs.edit().putString(TOKEN_KEY, token).apply()
     }
 
-    fun clearToken(context: Context) {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit().remove(KEY_TOKEN).apply()
+    fun getToken(): String? {
+        return prefs.getString(TOKEN_KEY, null)
+    }
+
+    fun clearToken() {
+        prefs.edit().remove(TOKEN_KEY).apply()
     }
 }

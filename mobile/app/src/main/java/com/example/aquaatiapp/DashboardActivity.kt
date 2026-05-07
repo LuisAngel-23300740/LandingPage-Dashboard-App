@@ -4,9 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.widget.Button
-import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -15,115 +12,133 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.aquaatiapp.network.ApiClient
-import com.example.aquaatiapp.ui.AlertAdapter
+import com.example.aquaatiapp.repository.AuthRepository
+import com.example.aquaatiapp.ui.adapter.AlertsAdapter
 import com.example.aquaatiapp.ui.viewmodel.DashboardViewModel
+import com.example.aquaatiapp.ui.viewmodel.ViewModelFactory
 import com.example.aquaatiapp.utils.TokenManager
 
 class DashboardActivity : AppCompatActivity() {
 
     private lateinit var viewModel: DashboardViewModel
+    private lateinit var tokenManager: TokenManager
     private lateinit var swipeRefresh: SwipeRefreshLayout
-    private lateinit var progressDashboard: ProgressBar
+    private lateinit var alertsAdapter: AlertsAdapter
+
     private lateinit var tvLitrosTotales: TextView
     private lateinit var tvLitrosHoy: TextView
-    private lateinit var tvCalidadAgua: TextView
+    private lateinit var tvCalidad: TextView
     private lateinit var tvEstadoFiltro: TextView
     private lateinit var rvAlertas: RecyclerView
-    private lateinit var btnHistorico: Button
-    private lateinit var alertAdapter: AlertAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
 
-        swipeRefresh = findViewById(R.id.swipeRefresh)
-        progressDashboard = findViewById(R.id.progressDashboard)
-        tvLitrosTotales = findViewById(R.id.tvLitrosTotales)
-        tvLitrosHoy = findViewById(R.id.tvLitrosHoy)
-        tvCalidadAgua = findViewById(R.id.tvCalidadAgua)
-        tvEstadoFiltro = findViewById(R.id.tvEstadoFiltro)
-        rvAlertas = findViewById(R.id.rvAlertas)
-        btnHistorico = findViewById(R.id.btnHistorico)
+        tokenManager = TokenManager(this)
 
-        rvAlertas.layoutManager = LinearLayoutManager(this)
-        alertAdapter = AlertAdapter(emptyList())
-        rvAlertas.adapter = alertAdapter
-
-        val token = TokenManager.getToken(this)
-        if (token.isNullOrBlank()) {
-            goToLogin()
+        // Recuperar token y configurar ApiClient al iniciar
+        val token = tokenManager.getToken()
+        if (token != null) {
+            ApiClient.setToken(token)
+        } else {
+            navigateToLogin()
             return
         }
 
-        ApiClient.setToken(token)
+        val repository = AuthRepository(ApiClient.apiService)
+        val factory = ViewModelFactory(repository)
+        viewModel = ViewModelProvider(this, factory)[DashboardViewModel::class.java]
 
-        viewModel = ViewModelProvider(this)[DashboardViewModel::class.java]
-        observeViewModel()
+        initViews()
+        setupObservers()
 
-        btnHistorico.setOnClickListener {
-            startActivity(Intent(this, HistoricoActivity::class.java))
-        }
+        viewModel.fetchDatos()
 
         swipeRefresh.setOnRefreshListener {
-            viewModel.loadDatos(token)
+            viewModel.fetchDatos()
         }
-
-        viewModel.loadDatos(token)
     }
 
-    private fun observeViewModel() {
-        viewModel.loading.observe(this) { loading ->
-            progressDashboard.visibility = if (loading) View.VISIBLE else View.GONE
-            swipeRefresh.isRefreshing = loading
+    private fun initViews() {
+        swipeRefresh = findViewById(R.id.swipeRefresh)
+        tvLitrosTotales = findViewById(R.id.tvLitrosTotales)
+        tvLitrosHoy = findViewById(R.id.tvLitrosHoy)
+        tvCalidad = findViewById(R.id.tvCalidad)
+        tvEstadoFiltro = findViewById(R.id.tvEstadoFiltro)
+        rvAlertas = findViewById(R.id.rvAlertas)
+
+        // Configurar RecyclerView
+        alertsAdapter = AlertsAdapter(emptyList())
+        rvAlertas.layoutManager = LinearLayoutManager(this)
+        rvAlertas.adapter = alertsAdapter
+
+        findViewById<android.view.View>(R.id.btnVerHistorico).setOnClickListener {
+            // Actividad de gráfico (próximo paso)
+            Toast.makeText(this, "Cargando histórico...", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun setupObservers() {
+        viewModel.isLoading.observe(this) { isLoading ->
+            swipeRefresh.isRefreshing = isLoading
         }
 
-        viewModel.datos.observe(this) { datos ->
-            datos?.let { updateDashboard(it) }
+        viewModel.datos.observe(this) { response ->
+            if (response.isSuccessful && response.body() != null) {
+                val data = response.body()!!
+                tvLitrosTotales.text = "${data.litrosTotales} L"
+                tvLitrosHoy.text = "${data.litrosHoy} L"
+                tvCalidad.text = "${data.calidadAgua}%"
+                tvEstadoFiltro.text = data.estadoFiltro
+
+                // Actualizar alertas
+                alertsAdapter.updateData(data.alertas)
+            } else if (response.code() == 401) {
+                handleUnauthorized()
+            } else {
+                val errorMsg = response.errorBody()?.string() ?: "Error desconocido"
+                Toast.makeText(this, "Error: $errorMsg", Toast.LENGTH_LONG).show()
+            }
         }
 
-        viewModel.error.observe(this) { error ->
+        viewModel.errorMessage.observe(this) { error ->
             error?.let {
-                Toast.makeText(this, it, Toast.LENGTH_LONG).show()
-            }
-        }
-
-        viewModel.logout.observe(this) { shouldLogout ->
-            if (shouldLogout) {
-                TokenManager.clearToken(this)
-                goToLogin()
-                viewModel.clearLogout()
+                Toast.makeText(this, "Error de red: $it", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun updateDashboard(datos: com.example.aquaatiapp.data.model.DatosResponse) {
-        tvLitrosTotales.text = String.format("%.0f L", datos.litros_totales)
-        tvLitrosHoy.text = String.format("%.0f L hoy", datos.litros_hoy)
-        tvCalidadAgua.text = "Calidad: ${datos.calidad_agua}%"
-        tvEstadoFiltro.text = datos.estado_filtro.replaceFirstChar { it.uppercase() }
-
-        alertAdapter = AlertAdapter(datos.alertas)
-        rvAlertas.adapter = alertAdapter
+    private fun handleUnauthorized() {
+        tokenManager.clearToken()
+        Toast.makeText(this, "Sesión expirada o inválida", Toast.LENGTH_SHORT).show()
+        navigateToLogin()
     }
 
-    private fun goToLogin() {
-        startActivity(Intent(this, LoginActivity::class.java))
+    private fun navigateToLogin() {
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
         finish()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.menu_dashboard, menu)
+        menuInflater.inflate(R.menu.dashboard_menu, menu)
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_logout -> {
-                TokenManager.clearToken(this)
-                goToLogin()
+                logout()
                 true
             }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun logout() {
+        tokenManager.clearToken()
+        navigateToLogin()
     }
 }

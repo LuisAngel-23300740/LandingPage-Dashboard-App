@@ -5,49 +5,50 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.aquaatiapp.data.model.DatosResponse
+import com.example.aquaatiapp.data.model.HistoricoResponse
 import com.example.aquaatiapp.repository.AuthRepository
 import kotlinx.coroutines.launch
+import retrofit2.Response
 
-class DashboardViewModel(
-    private val repository: AuthRepository = AuthRepository()
-) : ViewModel() {
+class DashboardViewModel(private val repository: AuthRepository) : ViewModel() {
 
-    private val _datos = MutableLiveData<DatosResponse?>()
-    val datos: LiveData<DatosResponse?> = _datos
+    private val _datos = MutableLiveData<Response<DatosResponse>>()
+    val datos: LiveData<Response<DatosResponse>> = _datos
 
-    private val _loading = MutableLiveData(false)
-    val loading: LiveData<Boolean> = _loading
+    private val _historico = MutableLiveData<Response<HistoricoResponse>>()
+    val historico: LiveData<Response<HistoricoResponse>> = _historico
 
-    private val _error = MutableLiveData<String?>()
-    val error: LiveData<String?> = _error
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
 
-    private val _logout = MutableLiveData(false)
-    val logout: LiveData<Boolean> = _logout
+    private val _errorMessage = MutableLiveData<String?>()
+    val errorMessage: LiveData<String?> = _errorMessage
 
-    fun loadDatos(token: String) {
-        _loading.value = true
-        _error.value = null
-
+    fun fetchDatos() {
         viewModelScope.launch {
+            _isLoading.value = true
             try {
-                val response = repository.getDatos(token)
-                if (response.isSuccessful) {
-                    _datos.value = response.body()
-                } else if (response.code() == 401 || response.code() == 403) {
-                    _logout.value = true
-                } else {
-                    _error.value = response.errorBody()?.string().takeUnless { it.isNullOrBlank() }
-                        ?: "Error al cargar datos"
-                }
-            } catch (exception: Exception) {
-                _error.value = exception.message ?: "Error de red"
+                val response = repository.getDatos()
+                _datos.value = response
+            } catch (e: Exception) {
+                _errorMessage.value = e.message
             } finally {
-                _loading.value = false
+                _isLoading.value = false
             }
         }
     }
 
-    fun clearLogout() {
-        _logout.value = false
+    fun fetchHistorico() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            try {
+                val response = repository.getHistorico()
+                _historico.value = response
+            } catch (e: Exception) {
+                _errorMessage.value = e.message
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 }

@@ -7,7 +7,7 @@ import com.example.aquaatiapp.data.model.LoginResponse
 import com.example.aquaatiapp.network.ApiService
 import retrofit2.Response
 
-class AuthRepository(private val apiService: ApiService) {
+class DataRepository(private val apiService: ApiService) {
 
     suspend fun login(loginRequest: LoginRequest): Response<LoginResponse> {
         return apiService.login(loginRequest)
