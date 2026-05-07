@@ -3,6 +3,15 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const supabase = require('../config/supabase');
 
+function parseTimestamp(value) {
+  if (!value) return null;
+  if (typeof value === 'string') {
+    const normalized = /(?:Z|[+-]\d{2}:?\d{2})$/i.test(value) ? value : `${value}Z`;
+    return new Date(normalized);
+  }
+  return new Date(value);
+}
+
 // Función auxiliar para obtener una fecha en formato YYYY-MM-DD en zona horaria Guadalajara
 function getMexicoDateStr(date) {
   const parts = new Intl.DateTimeFormat('en-CA', {
@@ -107,7 +116,7 @@ router.get('/', async (req, res) => {
       if (!errorTodas && todasLecturas) {
         // Calcular litros_hoy
         litrosHoy = todasLecturas
-          .filter(row => getMexicoDateStr(new Date(row.timestamp)) === hoyMexico)
+          .filter(row => getMexicoDateStr(parseTimestamp(row.timestamp)) === hoyMexico)
           .reduce((sum, row) => sum + (row.litros_filtrados || row.litros || row.litros_dia || 0), 0);
 
         // Calcular litros_totales
