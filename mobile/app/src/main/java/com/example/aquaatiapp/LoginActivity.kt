@@ -1,71 +1,86 @@
 package com.example.aquaatiapp
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
-import android.widget.EditText
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import com.example.aquaatiapp.data.model.LoginRequest
+import androidx.lifecycle.ViewModelProvider
 import com.example.aquaatiapp.network.ApiClient
-import com.example.aquaatiapp.network.ApiService
-import kotlinx.coroutines.launch
+import com.example.aquaatiapp.repository.AuthRepository
+import com.example.aquaatiapp.ui.viewmodel.LoginViewModel
+import com.example.aquaatiapp.ui.viewmodel.ViewModelFactory
+import com.example.aquaatiapp.utils.TokenManager
+import com.google.android.material.textfield.TextInputEditText
 
 class LoginActivity : AppCompatActivity() {
 
-    private lateinit var etEmail: EditText
-    private lateinit var etPassword: EditText
+    private lateinit var viewModel: LoginViewModel
+    private lateinit var tokenManager: TokenManager
+
+    private lateinit var etEmail: TextInputEditText
+    private lateinit var etPassword: TextInputEditText
     private lateinit var btnLogin: Button
+    private lateinit var progressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
+        // Inicializar componentes
+        tokenManager = TokenManager(this)
+        val repository = AuthRepository(ApiClient.apiService)
+        val factory = ViewModelFactory(repository)
+        viewModel = ViewModelProvider(this, factory)[LoginViewModel::class.java]
+
         etEmail = findViewById(R.id.etEmail)
         etPassword = findViewById(R.id.etPassword)
         btnLogin = findViewById(R.id.btnLogin)
+        progressBar = findViewById(R.id.progressBar)
 
-        val apiService = ApiClient.createService(ApiService::class.java)
+        setupObservers()
 
         btnLogin.setOnClickListener {
-            val email = etEmail.text.toString()
-            val password = etPassword.text.toString()
+            val email = etEmail.text.toString().trim()
+            val password = etPassword.text.toString().trim()
 
             if (email.isEmpty() || password.isEmpty()) {
-                Toast.makeText(this, "Por favor, completa todos los campos", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+                Toast.makeText(this, "Completa todos los campos", Toast.LENGTH_SHORT).show()
+            } else {
+                viewModel.login(email, password)
             }
+        }
+    }
 
-            val loginRequest = LoginRequest(email, password)
+    private fun setupObservers() {
+        viewModel.isLoading.observe(this) { isLoading ->
+            progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            btnLogin.isEnabled = !isLoading
+        }
 
-            lifecycleScope.launch {
-                try {
-                    val response = apiService.login(loginRequest)
-                    if (response.isSuccessful && response.body() != null) {
-                        val token = response.body()!!.token
-                        
-                        // Guardar token en SharedPreferences
-                        val sharedPref = getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
-                        with(sharedPref.edit()) {
-                            putString("auth_token", token)
-                            apply()
-                        }
+        viewModel.loginResponse.observe(this) { response ->
+            if (response.isSuccessful && response.body() != null) {
+                val token = response.body()!!.token
+                
+                // Guardar token
+                tokenManager.saveToken(token)
+                ApiClient.setToken(token)
 
-                        // Configurar token en ApiClient para futuras peticiones
-                        ApiClient.setToken(token)
+                // Navegar al Dashboard
+                val intent = Intent(this, DashboardActivity::class.java)
+                startActivity(intent)
+                finish()
+            } else {
+                val errorMsg = response.errorBody()?.string() ?: "Error de autenticación"
+                Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show()
+            }
+        }
 
-                        // Navegar a DashboardActivity
-                        val intent = Intent(this@LoginActivity, DashboardActivity::class.java)
-                        startActivity(intent)
-                        finish()
-                    } else {
-                        Toast.makeText(this@LoginActivity, "Error: ${response.message()}", Toast.LENGTH_SHORT).show()
-                    }
-                } catch (e: Exception) {
-                    Toast.makeText(this@LoginActivity, "Error de red: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
+        viewModel.errorMessage.observe(this) { error ->
+            error?.let {
+                Toast.makeText(this, "Error de red: $it", Toast.LENGTH_LONG).show()
             }
         }
     }
