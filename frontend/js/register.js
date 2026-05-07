@@ -1,4 +1,4 @@
-const API_URL = 'https://landingpage-dashboard-app.onrender.com/api';
+const API_URL = '/api';
 
 document.getElementById('registerForm').addEventListener('submit', async function (e) {
   e.preventDefault();

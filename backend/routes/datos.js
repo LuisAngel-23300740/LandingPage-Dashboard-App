@@ -63,9 +63,12 @@ router.get('/', async (req, res) => {
 
     const { data: todasLecturas, error: errorTodas } = await supabase
       .from('lecturas')
-      .select('timestamp, litros_filtrados, litros, litros_dia, calidad_agua, estado_filtro')
+      .select('*')
       .eq('usuario_id', usuario.id)
       .order('timestamp', { ascending: false });
+
+    console.log('[DEBUG] Lecturas query error:', errorTodas);
+    console.log('[DEBUG] Lecturas count:', todasLecturas ? todasLecturas.length : 0);
 
     if (!errorTodas && todasLecturas && todasLecturas.length > 0) {
       const latest = getLatestReading(todasLecturas);

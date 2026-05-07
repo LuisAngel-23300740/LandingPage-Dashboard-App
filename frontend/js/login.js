@@ -1,6 +1,6 @@
 console.log(' login.js cargado correctamente');
 
-const API_URL = 'https://landingpage-dashboard-app.onrender.com/api';
+const API_URL = '/api';
 
 const loginForm = document.getElementById('loginForm');
 const emailError = document.getElementById('emailError');

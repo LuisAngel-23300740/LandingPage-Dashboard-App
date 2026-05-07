@@ -95,6 +95,8 @@ async function refreshDashboardData() {
     }
 }
 
+const API_URL = '/api';
+
 // Generar etiquetas para los últimos 7 días en zona horaria Guadalajara
 function getLast7DayLabels() {
     const labels = [];
@@ -106,6 +108,13 @@ function getLast7DayLabels() {
 }
 
 // Cargar datos del dashboard desde la API
+const API_URL = (function getApiUrl() {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:') {
+        return 'http://localhost:3000/api';
+    }
+    return 'https://landingpage-dashboard-app.onrender.com/api';
+})();
+
 async function cargarDatosDashboard() {
     // Obtener token del localStorage
     const token = localStorage.getItem('token');
@@ -122,7 +131,7 @@ async function cargarDatosDashboard() {
 
     try {
         console.log('[DEBUG] Llamando a /api/datos con token...');
-        const respuesta = await fetch('https://landingpage-dashboard-app.onrender.com/api/datos', {
+        const respuesta = await fetch(`${API_URL}/datos`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -286,7 +295,7 @@ async function cargarDatosHistoricos() {
     if (!token) return;
 
     try {
-        const respuesta = await fetch('https://landingpage-dashboard-app.onrender.com/api/historico', {
+        const respuesta = await fetch(`${API_URL}/historico`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`,
