@@ -1,3 +1,27 @@
+// Menu hamburguesa movil
+if(document.getElementById('mobileMenuBtn')) {
+  document.getElementById('mobileMenuBtn').addEventListener('click', function() {
+    document.getElementById('sidebar').classList.toggle('open');
+  });
+
+  // Cerrar menu al tocar cualquier opcion
+  document.querySelectorAll('.sidebar-nav-item').forEach(item => {
+    item.addEventListener('click', function() {
+      document.getElementById('sidebar').classList.remove('open');
+    });
+  });
+
+  // Cerrar menu al tocar fuera del sidebar
+  document.addEventListener('click', function(e) {
+    const sidebar = document.getElementById('sidebar');
+    const menuBtn = document.getElementById('mobileMenuBtn');
+    
+    if (sidebar && menuBtn && !sidebar.contains(e.target) && !menuBtn.contains(e.target) && sidebar.classList.contains('open')) {
+      sidebar.classList.remove('open');
+    }
+  });
+}
+
 // Mostrar nombre del usuario autenticado PRIMERO, antes que cualquier otra cosa
 // Intentar multiples posibles claves para compatibilidad
 const userName = localStorage.getItem('userName') 

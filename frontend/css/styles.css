@@ -996,8 +996,194 @@ form button[type="submit"] {
 }
 
 /* =========================================
-   ALERTAS DASHBOARD
-   ========================================= */
+    ALERTAS DASHBOARD
+    ========================================= */
+
+.alerts-table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.alerts-table-container table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  min-width: 500px;
+}
+
+.alerts-table-container th,
+.alerts-table-container td {
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  color: #cbd5e1;
+  text-align: left;
+}
+
+.alerts-table-container tr:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+.alerts-table-container #noAlertsMessage {
+  color: #94a3b8;
+  padding: 24px;
+  text-align: center;
+}
+
+/* =========================================
+    BOTON HAMBURGUESA MOVIL
+    ========================================= */
+.mobile-menu-btn {
+  display: none;
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+  background: var(--primary);
+  border: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0,123,255,0.3);
+  touch-action: manipulation;
+}
+
+/* =========================================
+    MEDIA QUERIES RESPONSIVAS
+    ========================================= */
+
+/* Tablets y pantallas medianas */
+@media (max-width: 1024px) {
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .main-content {
+    padding: 30px;
+  }
+}
+
+/* Moviles grandes */
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .sidebar {
+    position: fixed;
+    left: -280px;
+    top: 0;
+    height: 100vh;
+    z-index: 999;
+    transition: left 0.3s ease;
+    box-shadow: 2px 0 20px rgba(0,0,0,0.3);
+  }
+  
+  .sidebar.open {
+    left: 0;
+  }
+  
+  .main-content {
+    padding: 20px;
+    padding-top: 80px;
+  }
+  
+  .cards-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .page-header {
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  
+  .chart-container {
+    padding: 20px;
+    max-height: unset;
+  }
+  
+  .config-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Moviles pequeños */
+@media (max-width: 480px) {
+  .main-content {
+    padding: 15px;
+    padding-top: 80px;
+  }
+  
+  .stat-card {
+    padding: 18px;
+  }
+  
+  .stat-card .value {
+    font-size: 1.6em;
+  }
+  
+  .chart-container {
+    padding: 15px;
+  }
+}
+
+/* =========================================
+    OPTIMIZACION RENDIMIENTO MOVIL
+    ========================================= */
+
+/* Desactivar efectos pesados en dispositivos tactiles */
+@media (hover: none) and (pointer: coarse) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  body::before,
+  .hero::before,
+  .hero::after,
+  .login-page::before,
+  .login-page::after {
+    animation: none !important;
+  }
+  
+  .card-glow::before,
+  .login-card::before,
+  .stat-card::before {
+    display: none !important;
+  }
+  
+  .backdrop-filter {
+    backdrop-filter: none !important;
+  }
+  
+  .stat-card:hover,
+  .feature-card:hover,
+  .config-card:hover,
+  .sidebar-nav-item:hover,
+  button:hover {
+    transform: none !important;
+  }
+  
+  .sidebar-nav-item:hover {
+    transform: none !important;
+  }
+}
+
+/* Optimizaciones de renderizado */
+.sidebar, .main-content, .stat-card, .config-card {
+  will-change: transform;
+}
+
+button, .sidebar-nav-item {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
 .alerts-section {
   margin-top: 30px;
 }
