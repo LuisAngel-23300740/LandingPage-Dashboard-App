@@ -67,6 +67,34 @@ function populateHistoryTable(datosHistoricos) {
     });
 }
 
+function updateRefreshStatus(message) {
+    const status = document.getElementById('refreshStatus');
+    if (status) {
+        status.textContent = message;
+    }
+}
+
+async function refreshDashboardData() {
+    const refreshBtn = document.getElementById('btnRefreshData');
+    if (refreshBtn) {
+        refreshBtn.disabled = true;
+        refreshBtn.textContent = 'Refrescando...';
+    }
+    updateRefreshStatus('Refrescando datos...');
+
+    await Promise.all([
+        cargarDatosDashboard(),
+        cargarDatosHistoricos()
+    ]);
+
+    const now = new Date().toLocaleString('es-MX', { timeZone: 'America/Mexico_City', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    updateRefreshStatus(`Última actualización: ${now}`);
+    if (refreshBtn) {
+        refreshBtn.disabled = false;
+        refreshBtn.textContent = 'Refrescar datos';
+    }
+}
+
 // Generar etiquetas para los últimos 7 días en zona horaria Guadalajara
 function getLast7DayLabels() {
     const labels = [];
@@ -339,10 +367,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const refreshBtn = document.getElementById('btnRefreshData');
     if (refreshBtn) {
-        refreshBtn.addEventListener('click', () => {
-            cargarDatosDashboard();
-            cargarDatosHistoricos();
-        });
+        refreshBtn.addEventListener('click', refreshDashboardData);
     }
 
     showSection('section-resumen');

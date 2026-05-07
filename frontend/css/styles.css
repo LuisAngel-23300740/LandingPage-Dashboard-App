@@ -308,6 +308,12 @@ form button[type="submit"] {
   margin-bottom: 20px;
 }
 
+.refresh-status {
+  margin-top: 10px;
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
 .config-card button {
   background: var(--primary);
   color: white;
