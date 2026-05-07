@@ -93,10 +93,7 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-app.get('/*', (req, res) => {
-  if (req.path.startsWith('/api')) {
-    return res.status(404).json({ message: 'API endpoint no encontrado.' });
-  }
+app.get(/^(?!\/api).*$/, (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
