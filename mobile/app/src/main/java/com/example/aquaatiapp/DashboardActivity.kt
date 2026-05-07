@@ -1,12 +1,15 @@
 package com.example.aquaatiapp
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.widget.Toolbar
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -35,9 +38,11 @@ class DashboardActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_dashboard)
 
+        val toolbar: Toolbar = findViewById(R.id.toolbar)
+        setSupportActionBar(toolbar)
+
         tokenManager = TokenManager(this)
 
-        // Recuperar token y configurar ApiClient al iniciar
         val token = tokenManager.getToken()
         if (token != null) {
             ApiClient.setToken(token)
@@ -68,14 +73,13 @@ class DashboardActivity : AppCompatActivity() {
         tvEstadoFiltro = findViewById(R.id.tvEstadoFiltro)
         rvAlertas = findViewById(R.id.rvAlertas)
 
-        // Configurar RecyclerView
         alertsAdapter = AlertsAdapter(emptyList())
         rvAlertas.layoutManager = LinearLayoutManager(this)
         rvAlertas.adapter = alertsAdapter
 
         findViewById<android.view.View>(R.id.btnVerHistorico).setOnClickListener {
-            // Actividad de gráfico (próximo paso)
-            Toast.makeText(this, "Cargando histórico...", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, HistoricoActivity::class.java)
+            startActivity(intent)
         }
     }
 
@@ -92,7 +96,6 @@ class DashboardActivity : AppCompatActivity() {
                 tvCalidad.text = "${data.calidadAgua}%"
                 tvEstadoFiltro.text = data.estadoFiltro
 
-                // Actualizar alertas
                 alertsAdapter.updateData(data.alertas)
             } else if (response.code() == 401) {
                 handleUnauthorized()
@@ -129,11 +132,30 @@ class DashboardActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.action_settings -> {
+                startActivity(Intent(this, SettingsActivity::class.java))
+                true
+            }
+            R.id.action_theme -> {
+                toggleTheme()
+                true
+            }
             R.id.action_logout -> {
                 logout()
                 true
             }
             else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun toggleTheme() {
+        val currentNightMode = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
+        if (currentNightMode == Configuration.UI_MODE_NIGHT_YES) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            Toast.makeText(this, "Tema Claro activado", Toast.LENGTH_SHORT).show()
+        } else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            Toast.makeText(this, "Tema Oscuro activado", Toast.LENGTH_SHORT).show()
         }
     }
 

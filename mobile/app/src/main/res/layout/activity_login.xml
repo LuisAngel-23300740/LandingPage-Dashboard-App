@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="?android:attr/windowBackground"
     android:padding="24dp"
     tools:context=".LoginActivity">
 
@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="AquaAtiApp"
-        android:textColor="@color/purple_700"
+        android:textColor="?attr/colorPrimary"
         android:textSize="28sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
@@ -42,14 +42,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvTitle"
         app:startIconDrawable="@drawable/ic_email"
-        app:startIconTint="@color/purple_500">
+        app:startIconTint="?attr/colorPrimary">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textEmailAddress"
-            android:textColor="@color/black" />
+            android:textColor="?android:attr/textColorPrimary" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -60,19 +60,19 @@
         android:layout_marginTop="16dp"
         android:hint="Contraseña"
         app:endIconMode="password_toggle"
-        app:endIconTint="@color/purple_500"
+        app:endIconTint="?attr/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tilEmail"
         app:startIconDrawable="@drawable/ic_lock"
-        app:startIconTint="@color/purple_500">
+        app:startIconTint="?attr/colorPrimary">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPassword"
-            android:textColor="@color/black" />
+            android:textColor="?android:attr/textColorPrimary" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <Button
@@ -80,7 +80,7 @@
         android:layout_width="0dp"
         android:layout_height="56dp"
         android:layout_marginTop="32dp"
-        android:backgroundTint="@color/purple_500"
+        android:backgroundTint="?attr/colorPrimary"
         android:text="Iniciar Sesión"
         android:textAllCaps="false"
         android:textSize="16sp"

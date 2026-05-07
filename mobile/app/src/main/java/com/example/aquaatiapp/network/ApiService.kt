@@ -1,7 +1,7 @@
 package com.example.aquaatiapp.network
 
 import com.example.aquaatiapp.data.model.DatosResponse
-import com.example.aquaatiapp.data.model.HistoricoResponse
+import com.example.aquaatiapp.data.model.DiaHistorico
 import com.example.aquaatiapp.data.model.LoginRequest
 import com.example.aquaatiapp.data.model.LoginResponse
 import retrofit2.Response
@@ -17,5 +17,5 @@ interface ApiService {
     suspend fun getDatos(): Response<DatosResponse>
 
     @GET("historico")
-    suspend fun getHistorico(): Response<HistoricoResponse>
+    suspend fun getHistorico(): Response<List<DiaHistorico>>
 }
