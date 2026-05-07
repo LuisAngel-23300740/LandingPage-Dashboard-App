@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
+        android:name=".AquaAtiApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -35,6 +36,11 @@
             android:name=".HistoricoActivity"
             android:exported="false"
             android:label="Histórico" />
+
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:label="Configuración" />
 
         <activity
             android:name=".MainActivity"

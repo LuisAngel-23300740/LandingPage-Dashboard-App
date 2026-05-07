@@ -1,7 +1,7 @@
 package com.example.aquaatiapp.repository
 
 import com.example.aquaatiapp.data.model.DatosResponse
-import com.example.aquaatiapp.data.model.HistoricoResponse
+import com.example.aquaatiapp.data.model.DiaHistorico
 import com.example.aquaatiapp.data.model.LoginRequest
 import com.example.aquaatiapp.data.model.LoginResponse
 import com.example.aquaatiapp.network.ApiService
@@ -17,7 +17,7 @@ class DataRepository(private val apiService: ApiService) {
         return apiService.getDatos()
     }
 
-    suspend fun getHistorico(): Response<HistoricoResponse> {
+    suspend fun getHistorico(): Response<List<DiaHistorico>> {
         return apiService.getHistorico()
     }
 }

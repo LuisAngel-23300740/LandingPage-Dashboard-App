@@ -6,8 +6,11 @@ import android.view.View
 import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import com.example.aquaatiapp.data.model.LecturaDiaria
+import com.example.aquaatiapp.data.model.DiaHistorico
+import com.example.aquaatiapp.network.ApiClient
 import com.example.aquaatiapp.repository.AuthRepository
 import com.example.aquaatiapp.utils.TokenManager
 import com.github.mikephil.charting.charts.LineChart
@@ -22,34 +25,52 @@ class HistoricoActivity : AppCompatActivity() {
 
     private lateinit var chartHistorico: LineChart
     private lateinit var progressHistorico: ProgressBar
+    private lateinit var tokenManager: TokenManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_historico)
 
+        val toolbar: Toolbar = findViewById(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
         chartHistorico = findViewById(R.id.chartHistorico)
         progressHistorico = findViewById(R.id.progressHistorico)
+        tokenManager = TokenManager(this)
 
-        val token = TokenManager.getToken(this)
+        val token = tokenManager.getToken()
         if (token.isNullOrBlank()) {
             goToLogin()
             return
         }
-
-        loadHistorico(token)
+        
+        ApiClient.setToken(token)
+        loadHistorico()
     }
 
-    private fun loadHistorico(token: String) {
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
+    }
+
+    private fun loadHistorico() {
         progressHistorico.visibility = View.VISIBLE
         lifecycleScope.launch {
             try {
-                val response = AuthRepository().getHistorico(token)
+                val repository = AuthRepository(ApiClient.apiService)
+                val response = repository.getHistorico()
                 if (response.isSuccessful && response.body() != null) {
-                    showChart(response.body()!!)
+                    val dias = response.body()!!
+                    if (dias.isNotEmpty()) {
+                        showChart(dias)
+                    } else {
+                        Toast.makeText(this@HistoricoActivity, "No hay datos históricos disponibles", Toast.LENGTH_SHORT).show()
+                    }
                 } else {
                     Toast.makeText(
                         this@HistoricoActivity,
-                        "No se pudo cargar el histórico",
+                        "Error al cargar el histórico: ${response.message()}",
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -65,7 +86,7 @@ class HistoricoActivity : AppCompatActivity() {
         }
     }
 
-    private fun showChart(datos: List<LecturaDiaria>) {
+    private fun showChart(datos: List<DiaHistorico>) {
         val entries = datos.mapIndexed { index, lectura ->
             Entry(index.toFloat(), lectura.litros.toFloat())
         }
@@ -73,11 +94,15 @@ class HistoricoActivity : AppCompatActivity() {
         val labels = datos.map { it.fecha }
 
         val dataSet = LineDataSet(entries, "Litros filtrados").apply {
-            lineWidth = 2f
-            circleRadius = 4f
-            setDrawValues(false)
-            color = getColor(R.color.purple_500)
-            setCircleColor(getColor(R.color.purple_500))
+            lineWidth = 3f
+            circleRadius = 5f
+            setDrawValues(true)
+            valueTextSize = 10f
+            color = ContextCompat.getColor(this@HistoricoActivity, R.color.purple_500)
+            setCircleColor(ContextCompat.getColor(this@HistoricoActivity, R.color.purple_500))
+            mode = LineDataSet.Mode.CUBIC_BEZIER
+            setDrawFilled(true)
+            fillAlpha = 50
         }
 
         chartHistorico.xAxis.apply {
@@ -88,15 +113,23 @@ class HistoricoActivity : AppCompatActivity() {
             labelRotationAngle = -45f
         }
 
+        chartHistorico.axisLeft.apply {
+            setDrawGridLines(true)
+            gridColor = android.graphics.Color.LTGRAY
+        }
+
         chartHistorico.axisRight.isEnabled = false
         chartHistorico.description.isEnabled = false
+        chartHistorico.legend.isEnabled = true
+        
         chartHistorico.data = LineData(dataSet)
-        chartHistorico.animateX(800)
+        chartHistorico.animateX(1000)
         chartHistorico.invalidate()
     }
 
     private fun goToLogin() {
         val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()
     }

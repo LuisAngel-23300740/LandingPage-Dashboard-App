@@ -2,8 +2,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/action_settings"
+        android:icon="@android:drawable/ic_menu_preferences"
+        android:title="Opciones"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_theme"
+        android:icon="@drawable/ic_theme"
+        android:title="Cambiar Tema (Claro/Oscuro)"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_logout"
         android:icon="@drawable/ic_logout"
         android:title="Cerrar sesión"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="never" />
 </menu>
