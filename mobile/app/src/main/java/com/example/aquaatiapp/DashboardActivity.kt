@@ -2,6 +2,7 @@ package com.example.aquaatiapp
 
 import android.content.Intent
 import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -46,6 +47,21 @@ class DashboardActivity : AppCompatActivity() {
         tokenManager = TokenManager(this)
         notificationHelper = NotificationHelper(this)
 
+        // Solicitar permiso de notificaciones para Android 13+ (API 33+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (androidx.core.content.ContextCompat.checkSelfPermission(
+                    this,
+                    android.Manifest.permission.POST_NOTIFICATIONS
+                ) != android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) {
+                androidx.core.app.ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                    1001
+                )
+            }
+        }
+
         val token = tokenManager.getToken()
         if (token != null) {
             ApiClient.setToken(token)
@@ -64,6 +80,11 @@ class DashboardActivity : AppCompatActivity() {
         viewModel.fetchDatos()
 
         swipeRefresh.setOnRefreshListener {
+            // Notificación de prueba inmediata al refrescar para verificar que funcionan
+            notificationHelper.showMaintenanceNotification(
+                "Prueba de Alerta",
+                "Si ves esto, las notificaciones funcionan correctamente"
+            )
             viewModel.fetchDatos()
         }
     }
@@ -120,7 +141,7 @@ class DashboardActivity : AppCompatActivity() {
     }
 
     private fun checkNotificationConditions(estadoFiltro: String, calidadAgua: Int) {
-        notificationHelper.showMaintenanceNotification("Prueba de Alerta", "Si ves esto, las notificaciones funcionan")
+        // Se eliminó la línea de prueba de aquí para que funcione incluso si falla la red al refrescar
 
         if (estadoFiltro.lowercase() == "malo") {
             notificationHelper.showMaintenanceNotification(

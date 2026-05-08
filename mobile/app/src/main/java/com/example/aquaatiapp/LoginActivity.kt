@@ -31,6 +31,17 @@ class LoginActivity : AppCompatActivity() {
 
         // Inicializar componentes
         tokenManager = TokenManager(this)
+
+        // VERIFICAR SESIÓN EXISTENTE
+        val savedToken = tokenManager.getToken()
+        if (savedToken != null) {
+            ApiClient.setToken(savedToken)
+            val intent = Intent(this, DashboardActivity::class.java)
+            startActivity(intent)
+            finish()
+            return
+        }
+
         val repository = AuthRepository(ApiClient.apiService)
         val factory = ViewModelFactory(repository)
         viewModel = ViewModelProvider(this, factory)[LoginViewModel::class.java]
