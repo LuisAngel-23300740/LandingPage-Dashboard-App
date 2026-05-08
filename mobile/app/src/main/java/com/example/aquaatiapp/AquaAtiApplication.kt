@@ -3,6 +3,12 @@ package com.example.aquaatiapp
 import android.app.Application
 import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import com.example.aquaatiapp.workers.DataRefreshWorker
+import java.util.concurrent.TimeUnit
 
 class AquaAtiApplication : Application() {
     override fun onCreate() {
@@ -16,5 +22,23 @@ class AquaAtiApplication : Application() {
         } else {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }
+
+        setupBackgroundWork()
+    }
+
+    private fun setupBackgroundWork() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val workRequest = PeriodicWorkRequestBuilder<DataRefreshWorker>(1, TimeUnit.HOURS)
+            .setConstraints(constraints)
+            .build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "DataRefreshWork",
+            androidx.work.ExistingPeriodicWorkPolicy.KEEP,
+            workRequest
+        )
     }
 }

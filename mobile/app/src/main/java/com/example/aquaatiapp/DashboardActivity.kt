@@ -19,12 +19,14 @@ import com.example.aquaatiapp.repository.AuthRepository
 import com.example.aquaatiapp.ui.adapter.AlertsAdapter
 import com.example.aquaatiapp.ui.viewmodel.DashboardViewModel
 import com.example.aquaatiapp.ui.viewmodel.ViewModelFactory
+import com.example.aquaatiapp.utils.NotificationHelper
 import com.example.aquaatiapp.utils.TokenManager
 
 class DashboardActivity : AppCompatActivity() {
 
     private lateinit var viewModel: DashboardViewModel
     private lateinit var tokenManager: TokenManager
+    private lateinit var notificationHelper: NotificationHelper
     private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var alertsAdapter: AlertsAdapter
 
@@ -42,6 +44,7 @@ class DashboardActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         tokenManager = TokenManager(this)
+        notificationHelper = NotificationHelper(this)
 
         val token = tokenManager.getToken()
         if (token != null) {
@@ -97,6 +100,10 @@ class DashboardActivity : AppCompatActivity() {
                 tvEstadoFiltro.text = data.estadoFiltro
 
                 alertsAdapter.updateData(data.alertas)
+
+                // Verificar condiciones para notificaciones locales
+                checkNotificationConditions(data.estadoFiltro, data.calidadAgua)
+
             } else if (response.code() == 401) {
                 handleUnauthorized()
             } else {
@@ -109,6 +116,22 @@ class DashboardActivity : AppCompatActivity() {
             error?.let {
                 Toast.makeText(this, "Error de red: $it", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun checkNotificationConditions(estadoFiltro: String, calidadAgua: Int) {
+        notificationHelper.showMaintenanceNotification("Prueba de Alerta", "Si ves esto, las notificaciones funcionan")
+
+        if (estadoFiltro.lowercase() == "malo") {
+            notificationHelper.showMaintenanceNotification(
+                "Mantenimiento requerido",
+                "El filtro necesita atención inmediata."
+            )
+        } else if (calidadAgua < 50) {
+            notificationHelper.showMaintenanceNotification(
+                "Calidad de agua baja",
+                "La calidad del agua es de solo $calidadAgua%."
+            )
         }
     }
 

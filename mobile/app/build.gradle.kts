@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.mpandroidchart)
     implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.androidx.gridlayout)
+    implementation(libs.androidx.work)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
